@@ -60,6 +60,7 @@ export const get = query({
 export const create = mutation({
     args: {
         roomId: v.id("rooms"),
+        name: v.optional(v.string()),
         location: fixtureLocations,
         notes: v.optional(v.string()),
     },
@@ -74,6 +75,7 @@ export const create = mutation({
         const now = Date.now();
         return await ctx.db.insert("fixtures", {
             roomId: args.roomId,
+            name: args.name,
             location: args.location,
             notes: args.notes,
             createdAt: now,
@@ -85,6 +87,7 @@ export const create = mutation({
 export const update = mutation({
     args: {
         id: v.id("fixtures"),
+        name: v.optional(v.string()),
         location: fixtureLocations,
         notes: v.optional(v.string()),
     },
@@ -99,6 +102,7 @@ export const update = mutation({
         if (!property || property.userId !== userId)
             throw new Error("Not found");
         await ctx.db.patch(args.id, {
+            name: args.name,
             location: args.location,
             notes: args.notes,
             updatedAt: Date.now(),
@@ -122,6 +126,7 @@ export const duplicate = mutation({
         const now = Date.now();
         const newFixtureId = await ctx.db.insert("fixtures", {
             roomId: fixture.roomId,
+            name: fixture.name ? `${fixture.name} (Copy)` : undefined,
             location: fixture.location,
             notes: fixture.notes ? `(Copy) ${fixture.notes}` : "(Copy)",
             createdAt: now,

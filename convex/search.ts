@@ -27,6 +27,7 @@ export const searchAll = query({
             roomId: string;
             roomType: string;
             fixtureId: string;
+            fixtureName?: string;
             fixtureLocation: string;
             socketType: string;
             features: string[];
@@ -92,6 +93,7 @@ export const searchAll = query({
                             roomId: room._id,
                             roomType: room.roomType,
                             fixtureId: fixture._id,
+                            fixtureName: fixture.name,
                             fixtureLocation: fixture.location,
                             socketType: bulb.socketType,
                             features: bulb.features,

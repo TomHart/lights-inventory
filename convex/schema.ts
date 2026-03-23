@@ -85,6 +85,7 @@ export default defineSchema({
 
     fixtures: defineTable({
         roomId: v.id("rooms"),
+        name: v.optional(v.string()),
         location: fixtureLocations,
         notes: v.optional(v.string()),
         createdAt: v.number(),

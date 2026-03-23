@@ -240,7 +240,7 @@ function DashboardContent() {
                                                     <p className="text-xs text-muted-foreground/70 mt-0.5">
                                                         {[
                                                             r.roomName,
-                                                            r.fixtureLocation && FIXTURE_LOCATION_LABELS[r.fixtureLocation],
+                                                            r.fixtureName || (r.fixtureLocation && FIXTURE_LOCATION_LABELS[r.fixtureLocation]),
                                                             r.bulbProductName,
                                                             r.bulbWattage && `${r.bulbWattage}W`,
                                                         ].filter(Boolean).join(" · ")}

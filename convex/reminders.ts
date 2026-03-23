@@ -25,6 +25,7 @@ export const listDue = query({
         return {
           ...r,
           fixtureId: bulb?.fixtureId ?? null,
+          fixtureName: fixture?.name ?? null,
           fixtureLocation: fixture?.location ?? null,
           roomName: room?.name ?? null,
           bulbWattage: bulb?.wattage ?? null,

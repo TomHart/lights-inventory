@@ -170,10 +170,14 @@ function FixtureDetailContent() {
         </Link>
         <div>
           <h1 className="text-3xl font-bold">
-            {FIXTURE_LOCATION_LABELS[fixture.location] || fixture.location}{" "}
-            Fixture
+            {fixture.name || `${FIXTURE_LOCATION_LABELS[fixture.location] || fixture.location} Fixture`}
           </h1>
           <div className="flex gap-2 mt-1 flex-wrap">
+            {fixture.name && (
+              <Badge variant="outline">
+                {FIXTURE_LOCATION_LABELS[fixture.location] || fixture.location}
+              </Badge>
+            )}
             <span className="text-muted-foreground text-sm">
               in {fixtureData.roomName} &middot; {fixtureData.propertyName}
             </span>

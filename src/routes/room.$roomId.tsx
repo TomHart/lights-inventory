@@ -5,6 +5,7 @@ import type { Id } from "../../convex/_generated/dataModel";
 import { useState } from "react";
 import { AuthGuard } from "#/components/AuthGuard";
 import { Button } from "#/components/ui/button";
+import { Input } from "#/components/ui/input";
 import { Label } from "#/components/ui/label";
 import { Textarea } from "#/components/ui/textarea";
 import {
@@ -188,12 +189,14 @@ function FixtureCard({ fixture }: { fixture: any }) {
         <div className="flex items-start justify-between">
           <div>
             <CardTitle className="text-lg">
-              {FIXTURE_LOCATION_LABELS[fixture.location] || fixture.location}
+              {fixture.name || FIXTURE_LOCATION_LABELS[fixture.location] || fixture.location}
             </CardTitle>
             <CardDescription className="flex flex-wrap gap-1 mt-1">
-              <Badge variant="outline">
-                {FIXTURE_LOCATION_LABELS[fixture.location] || fixture.location}
-              </Badge>
+              {fixture.name && (
+                <Badge variant="outline">
+                  {FIXTURE_LOCATION_LABELS[fixture.location] || fixture.location}
+                </Badge>
+              )}
             </CardDescription>
           </div>
           <div className="flex gap-1">
@@ -289,6 +292,7 @@ function CreateFixtureForm({
   onSuccess: () => void;
 }) {
   const create = useMutation(api.fixtures.create);
+  const [name, setName] = useState("");
   const [location, setLocation] = useState("");
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
@@ -300,6 +304,7 @@ function CreateFixtureForm({
     try {
       await create({
         roomId,
+        name: name || undefined,
         location: location as any,
         notes: notes || undefined,
       });
@@ -314,6 +319,14 @@ function CreateFixtureForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-2">
+        <Label>Name (optional)</Label>
+        <Input
+          placeholder="e.g. Main overhead, Bedside lamp"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
+      </div>
       <div className="space-y-2">
         <Label>Location</Label>
         <Select value={location} onValueChange={setLocation}>
@@ -356,6 +369,7 @@ function EditFixtureForm({
   onSuccess: () => void;
 }) {
   const update = useMutation(api.fixtures.update);
+  const [name, setName] = useState(fixture.name || "");
   const [location, setLocation] = useState(fixture.location);
   const [notes, setNotes] = useState(fixture.notes || "");
   const [loading, setLoading] = useState(false);
@@ -366,6 +380,7 @@ function EditFixtureForm({
     try {
       await update({
         id: fixture._id,
+        name: name || undefined,
         location,
         notes: notes || undefined,
       });
@@ -380,6 +395,14 @@ function EditFixtureForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-2">
+        <Label>Name (optional)</Label>
+        <Input
+          placeholder="e.g. Main overhead, Bedside lamp"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
+      </div>
       <div className="space-y-2">
         <Label>Location</Label>
         <Select value={location} onValueChange={setLocation}>

@@ -347,7 +347,7 @@ function SearchContent() {
                     {result.propertyName} &rarr;{" "}
                     {result.roomName} (
                     {ROOM_TYPE_LABELS[result.roomType] || result.roomType}) &rarr;{" "}
-                    {FIXTURE_LOCATION_LABELS[result.fixtureLocation] ||
+                    {result.fixtureName || FIXTURE_LOCATION_LABELS[result.fixtureLocation] ||
                       result.fixtureLocation}
                     {result.productName && ` &middot; ${result.productName}`}
                   </p>
