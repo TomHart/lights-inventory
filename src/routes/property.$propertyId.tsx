@@ -33,7 +33,6 @@ import {
 import { Badge } from "#/components/ui/badge";
 import {
   Plus,
-  DoorOpen,
   Lightbulb,
   AlertTriangle,
   Trash2,
@@ -127,55 +126,42 @@ function PropertyDetailContent() {
         >
           <ArrowLeft className="h-4 w-4" /> Back to Properties
         </Link>
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">{property.name}</h1>
-            <p className="text-muted-foreground mt-1">
-              {rooms.length} room{rooms.length !== 1 ? "s" : ""}
-            </p>
-          </div>
-          <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" /> Add Room
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Add Room</DialogTitle>
-                <DialogDescription className="sr-only">
-                  Enter the details for a new room.
-                </DialogDescription>
-              </DialogHeader>
-              <CreateRoomForm
-                propertyId={propertyId as Id<"properties">}
-                onSuccess={() => setCreateOpen(false)}
-              />
-            </DialogContent>
-          </Dialog>
+        <div>
+          <h1 className="text-3xl font-bold">{property.name}</h1>
+          <p className="text-muted-foreground mt-1">
+            {rooms.length} room{rooms.length !== 1 ? "s" : ""}
+          </p>
         </div>
       </div>
 
-      {rooms.length === 0 ? (
-        <Card>
-          <CardContent className="py-12 text-center">
-            <DoorOpen className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No rooms yet</h3>
-            <p className="text-muted-foreground mb-4">
-              Add rooms to start tracking fixtures and bulbs.
-            </p>
-            <Button onClick={() => setCreateOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" /> Add Room
-            </Button>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {rooms.map((room: any) => (
-            <RoomCard key={room._id} room={room} />
-          ))}
-        </div>
-      )}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {rooms.map((room: any) => (
+          <RoomCard key={room._id} room={room} />
+        ))}
+        <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+          <DialogTrigger asChild>
+            <button
+              type="button"
+              className="flex min-h-[200px] flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-muted-foreground/25 text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary cursor-pointer bg-transparent"
+            >
+              <Plus className="h-8 w-8" />
+              <span className="text-sm font-medium">Add Room</span>
+            </button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add Room</DialogTitle>
+              <DialogDescription className="sr-only">
+                Enter the details for a new room.
+              </DialogDescription>
+            </DialogHeader>
+            <CreateRoomForm
+              propertyId={propertyId as Id<"properties">}
+              onSuccess={() => setCreateOpen(false)}
+            />
+          </DialogContent>
+        </Dialog>
+      </div>
     </div>
   );
 }

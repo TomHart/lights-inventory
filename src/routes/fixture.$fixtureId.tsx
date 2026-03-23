@@ -159,63 +159,21 @@ function FixtureDetailContent() {
         >
           <ArrowLeft className="h-4 w-4" /> Back to {fixtureData.roomName || "Room"}
         </Link>
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">
-              {FIXTURE_LOCATION_LABELS[fixture.location] || fixture.location}{" "}
-              Fixture
-            </h1>
-            <div className="flex gap-2 mt-1 flex-wrap">
-              <Badge variant="outline">{fixture.socketType}</Badge>
-              {fixture.features.map((f: string) => (
-                <Badge key={f} variant="secondary">
-                  {f}
-                </Badge>
-              ))}
-              <span className="text-muted-foreground text-sm">
-                in {fixtureData.roomName} &middot; {fixtureData.propertyName}
-              </span>
-            </div>
-          </div>
-          <div className="flex gap-2">
-            <Dialog open={addLogOpen} onOpenChange={setAddLogOpen}>
-              <DialogTrigger asChild>
-                <Button variant="outline">
-                  <Wrench className="h-4 w-4 mr-2" /> Log Maintenance
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Add Maintenance Log</DialogTitle>
-                  <DialogDescription className="sr-only">
-                    Record a maintenance action for this fixture.
-                  </DialogDescription>
-                </DialogHeader>
-                <AddMaintenanceLogForm
-                  fixtureId={fixtureId as Id<"fixtures">}
-                  onSuccess={() => setAddLogOpen(false)}
-                />
-              </DialogContent>
-            </Dialog>
-            <Dialog open={createBulbOpen} onOpenChange={setCreateBulbOpen}>
-              <DialogTrigger asChild>
-                <Button>
-                  <Plus className="h-4 w-4 mr-2" /> Add Bulb
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-lg">
-                <DialogHeader>
-                  <DialogTitle>Add Bulb</DialogTitle>
-                  <DialogDescription className="sr-only">
-                    Enter the details for a new bulb.
-                  </DialogDescription>
-                </DialogHeader>
-                <CreateBulbForm
-                  fixtureId={fixtureId as Id<"fixtures">}
-                  onSuccess={() => setCreateBulbOpen(false)}
-                />
-              </DialogContent>
-            </Dialog>
+        <div>
+          <h1 className="text-3xl font-bold">
+            {FIXTURE_LOCATION_LABELS[fixture.location] || fixture.location}{" "}
+            Fixture
+          </h1>
+          <div className="flex gap-2 mt-1 flex-wrap">
+            <Badge variant="outline">{fixture.socketType}</Badge>
+            {fixture.features.map((f: string) => (
+              <Badge key={f} variant="secondary">
+                {f}
+              </Badge>
+            ))}
+            <span className="text-muted-foreground text-sm">
+              in {fixtureData.roomName} &middot; {fixtureData.propertyName}
+            </span>
           </div>
         </div>
         {fixture.notes && (
@@ -229,61 +187,86 @@ function FixtureDetailContent() {
       <h2 className="text-xl font-semibold mb-4">
         Bulbs ({bulbs.length})
       </h2>
-      {bulbs.length === 0 ? (
-        <Card>
-          <CardContent className="py-12 text-center">
-            <Lightbulb className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No bulbs tracked</h3>
-            <p className="text-muted-foreground mb-4">
-              Add bulbs to track their lifespan and status.
-            </p>
-            <Button onClick={() => setCreateBulbOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" /> Add Bulb
-            </Button>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-8">
-          {bulbs.map((bulb: any) => (
-            <BulbCard
-              key={bulb._id}
-              bulb={bulb}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-8">
+        {bulbs.map((bulb: any) => (
+          <BulbCard
+            key={bulb._id}
+            bulb={bulb}
+            fixtureId={fixtureId as Id<"fixtures">}
+          />
+        ))}
+        <Dialog open={createBulbOpen} onOpenChange={setCreateBulbOpen}>
+          <DialogTrigger asChild>
+            <button
+              type="button"
+              className="flex min-h-[200px] flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-muted-foreground/25 text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary cursor-pointer bg-transparent"
+            >
+              <Plus className="h-8 w-8" />
+              <span className="text-sm font-medium">Add Bulb</span>
+            </button>
+          </DialogTrigger>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Add Bulb</DialogTitle>
+              <DialogDescription className="sr-only">
+                Enter the details for a new bulb.
+              </DialogDescription>
+            </DialogHeader>
+            <CreateBulbForm
               fixtureId={fixtureId as Id<"fixtures">}
+              onSuccess={() => setCreateBulbOpen(false)}
             />
-          ))}
-        </div>
-      )}
+          </DialogContent>
+        </Dialog>
+      </div>
 
       {/* Maintenance History */}
       <Separator className="my-8" />
       <h2 className="text-xl font-semibold mb-4">
         Maintenance History
       </h2>
-      {!maintenanceLogs || maintenanceLogs.length === 0 ? (
-        <p className="text-muted-foreground text-sm">
-          No maintenance logs yet.
-        </p>
-      ) : (
-        <div className="space-y-2">
-          {maintenanceLogs.map((log: any) => (
-            <div
-              key={log._id}
-              className="flex items-start gap-3 rounded-lg border p-3 text-sm"
-            >
-              <Wrench className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-              <div className="flex-1">
-                <p className="font-medium">{log.action}</p>
-                {log.notes && (
-                  <p className="text-muted-foreground">{log.notes}</p>
-                )}
-                <p className="text-xs text-muted-foreground mt-1">
-                  {new Date(log.date).toLocaleDateString()}
-                </p>
-              </div>
+      <div className="space-y-2">
+        {maintenanceLogs && maintenanceLogs.map((log: any) => (
+          <div
+            key={log._id}
+            className="flex items-start gap-3 rounded-lg border p-3 text-sm"
+          >
+            <Wrench className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+            <div className="flex-1">
+              <p className="font-medium">{log.action}</p>
+              {log.notes && (
+                <p className="text-muted-foreground">{log.notes}</p>
+              )}
+              <p className="text-xs text-muted-foreground mt-1">
+                {new Date(log.date).toLocaleDateString()}
+              </p>
             </div>
-          ))}
-        </div>
-      )}
+          </div>
+        ))}
+        <Dialog open={addLogOpen} onOpenChange={setAddLogOpen}>
+          <DialogTrigger asChild>
+            <button
+              type="button"
+              className="flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-muted-foreground/25 p-3 text-sm text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary cursor-pointer bg-transparent"
+            >
+              <Plus className="h-4 w-4" />
+              <span className="font-medium">Log Maintenance</span>
+            </button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add Maintenance Log</DialogTitle>
+              <DialogDescription className="sr-only">
+                Record a maintenance action for this fixture.
+              </DialogDescription>
+            </DialogHeader>
+            <AddMaintenanceLogForm
+              fixtureId={fixtureId as Id<"fixtures">}
+              onSuccess={() => setAddLogOpen(false)}
+            />
+          </DialogContent>
+        </Dialog>
+      </div>
     </div>
   );
 }

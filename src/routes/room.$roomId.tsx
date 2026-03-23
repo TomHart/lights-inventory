@@ -39,7 +39,6 @@ import {
   Trash2,
   Pencil,
   ArrowLeft,
-  Zap,
   Copy,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -147,48 +146,37 @@ function RoomDetailContent() {
               </span>
             </div>
           </div>
-          <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" /> Add Fixture
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-lg">
-              <DialogHeader>
-                <DialogTitle>Add Fixture</DialogTitle>
-                <DialogDescription className="sr-only">
-                  Enter the details for a new fixture.
-                </DialogDescription>
-              </DialogHeader>
-              <CreateFixtureForm
-                roomId={roomId as Id<"rooms">}
-                onSuccess={() => setCreateOpen(false)}
-              />
-            </DialogContent>
-          </Dialog>
         </div>
       </div>
 
-      {fixtures.length === 0 ? (
-        <Card>
-          <CardContent className="py-12 text-center">
-            <Zap className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No fixtures yet</h3>
-            <p className="text-muted-foreground mb-4">
-              Add light fixtures to start tracking bulbs.
-            </p>
-            <Button onClick={() => setCreateOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" /> Add Fixture
-            </Button>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {fixtures.map((fixture: any) => (
-            <FixtureCard key={fixture._id} fixture={fixture} />
-          ))}
-        </div>
-      )}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {fixtures.map((fixture: any) => (
+          <FixtureCard key={fixture._id} fixture={fixture} />
+        ))}
+        <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+          <DialogTrigger asChild>
+            <button
+              type="button"
+              className="flex min-h-[200px] flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-muted-foreground/25 text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary cursor-pointer bg-transparent"
+            >
+              <Plus className="h-8 w-8" />
+              <span className="text-sm font-medium">Add Fixture</span>
+            </button>
+          </DialogTrigger>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Add Fixture</DialogTitle>
+              <DialogDescription className="sr-only">
+                Enter the details for a new fixture.
+              </DialogDescription>
+            </DialogHeader>
+            <CreateFixtureForm
+              roomId={roomId as Id<"rooms">}
+              onSuccess={() => setCreateOpen(false)}
+            />
+          </DialogContent>
+        </Dialog>
+      </div>
     </div>
   );
 }

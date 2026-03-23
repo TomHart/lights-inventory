@@ -23,7 +23,6 @@ import {
   DialogTrigger,
 } from "#/components/ui/dialog";
 import {
-  Building2,
   Plus,
   DoorOpen,
   Lightbulb,
@@ -89,18 +88,26 @@ function PropertiesContent() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold">Properties</h1>
-          <p className="text-muted-foreground mt-1">
-            Manage your properties and their rooms
-          </p>
-        </div>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold">Properties</h1>
+        <p className="text-muted-foreground mt-1">
+          Manage your properties and their rooms
+        </p>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {properties.map((property: any) => (
+          <PropertyCard key={property._id} property={property} />
+        ))}
         <Dialog open={createOpen} onOpenChange={setCreateOpen}>
           <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" /> Add Property
-            </Button>
+            <button
+              type="button"
+              className="flex min-h-[200px] flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-muted-foreground/25 text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary cursor-pointer bg-transparent"
+            >
+              <Plus className="h-8 w-8" />
+              <span className="text-sm font-medium">Add Property</span>
+            </button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
@@ -113,27 +120,6 @@ function PropertiesContent() {
           </DialogContent>
         </Dialog>
       </div>
-
-      {properties.length === 0 ? (
-        <Card>
-          <CardContent className="py-12 text-center">
-            <Building2 className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No properties yet</h3>
-            <p className="text-muted-foreground mb-4">
-              Add your first property to start tracking your lights.
-            </p>
-            <Button onClick={() => setCreateOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" /> Add Property
-            </Button>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {properties.map((property: any) => (
-            <PropertyCard key={property._id} property={property} />
-          ))}
-        </div>
-      )}
     </div>
   );
 }

@@ -33,7 +33,6 @@ import { Badge } from "#/components/ui/badge";
 import {
   Plus,
   Minus,
-  Package,
   Trash2,
   Pencil,
 } from "lucide-react";
@@ -100,18 +99,26 @@ function InventoryContent() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold">Spare Bulbs Inventory</h1>
-          <p className="text-muted-foreground mt-1">
-            {totalCount} spare bulb{totalCount !== 1 ? "s" : ""} in stock
-          </p>
-        </div>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold">Spare Bulbs Inventory</h1>
+        <p className="text-muted-foreground mt-1">
+          {totalCount} spare bulb{totalCount !== 1 ? "s" : ""} in stock
+        </p>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {spares.map((spare: any) => (
+          <SpareCard key={spare._id} spare={spare} />
+        ))}
         <Dialog open={createOpen} onOpenChange={setCreateOpen}>
           <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" /> Add Spare
-            </Button>
+            <button
+              type="button"
+              className="flex min-h-[200px] flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-muted-foreground/25 text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary cursor-pointer bg-transparent"
+            >
+              <Plus className="h-8 w-8" />
+              <span className="text-sm font-medium">Add Spare</span>
+            </button>
           </DialogTrigger>
           <DialogContent className="max-w-lg">
             <DialogHeader>
@@ -124,29 +131,6 @@ function InventoryContent() {
           </DialogContent>
         </Dialog>
       </div>
-
-      {spares.length === 0 ? (
-        <Card>
-          <CardContent className="py-12 text-center">
-            <Package className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">
-              No spare bulbs tracked
-            </h3>
-            <p className="text-muted-foreground mb-4">
-              Keep track of your spare bulb inventory.
-            </p>
-            <Button onClick={() => setCreateOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" /> Add Spare
-            </Button>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {spares.map((spare: any) => (
-            <SpareCard key={spare._id} spare={spare} />
-          ))}
-        </div>
-      )}
     </div>
   );
 }
