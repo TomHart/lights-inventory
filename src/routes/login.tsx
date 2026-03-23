@@ -129,7 +129,20 @@ function AuthForm({
         onVerificationNeeded(email);
       }
     } catch (err: any) {
-      setError(err?.message || "Authentication failed. Please try again.");
+      const msg = (err?.message ?? "").toLowerCase();
+      if (
+        msg.includes("invalidaccountid") ||
+        msg.includes("invalid") ||
+        msg.includes("could not find") ||
+        msg.includes("incorrect") ||
+        msg.includes("credentials")
+      ) {
+        setError("Invalid email or password. Please try again.");
+      } else if (msg.includes("too many") || msg.includes("rate")) {
+        setError("Too many attempts. Please wait a moment and try again.");
+      } else {
+        setError("Authentication failed. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
