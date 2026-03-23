@@ -86,8 +86,6 @@ export default defineSchema({
     fixtures: defineTable({
         roomId: v.id("rooms"),
         location: fixtureLocations,
-        socketType: socketTypes,
-        features: v.array(v.string()),
         notes: v.optional(v.string()),
         createdAt: v.number(),
         updatedAt: v.number(),
@@ -95,6 +93,8 @@ export default defineSchema({
 
     bulbs: defineTable({
         fixtureId: v.id("fixtures"),
+        socketType: socketTypes,
+        features: v.array(v.string()),
         installDate: v.number(),
         status: bulbStatuses,
         wattage: v.number(),

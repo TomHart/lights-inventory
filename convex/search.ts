@@ -52,15 +52,6 @@ export const searchAll = query({
                     .collect();
 
                 for (const fixture of fixtures) {
-                    // Apply fixture-level filters
-                    if (args.socketType && fixture.socketType !== args.socketType)
-                        continue;
-                    if (
-                        args.isSmart !== undefined &&
-                        args.isSmart !== fixture.features.includes("smart")
-                    )
-                        continue;
-
                     const bulbs = await ctx.db
                         .query("bulbs")
                         .withIndex("by_fixtureId", (q) =>
@@ -70,6 +61,13 @@ export const searchAll = query({
 
                     for (const bulb of bulbs) {
                         // Apply bulb-level filters
+                        if (args.socketType && bulb.socketType !== args.socketType)
+                            continue;
+                        if (
+                            args.isSmart !== undefined &&
+                            args.isSmart !== bulb.features.includes("smart")
+                        )
+                            continue;
                         if (
                             args.minWattage !== undefined &&
                             bulb.wattage < args.minWattage
@@ -95,8 +93,8 @@ export const searchAll = query({
                             roomType: room.roomType,
                             fixtureId: fixture._id,
                             fixtureLocation: fixture.location,
-                            socketType: fixture.socketType,
-                            features: fixture.features,
+                            socketType: bulb.socketType,
+                            features: bulb.features,
                             bulbId: bulb._id,
                             wattage: bulb.wattage,
                             status: bulb.status,

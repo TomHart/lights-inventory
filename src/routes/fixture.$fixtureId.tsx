@@ -47,11 +47,15 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { ConfirmDialog } from "#/components/ConfirmDialog";
+import { Checkbox } from "#/components/ui/checkbox";
 import {
   BULB_STATUS_LABELS,
   BULB_STATUS_COLORS,
   COLOUR_TEMP_LABELS,
   FIXTURE_LOCATION_LABELS,
+  SOCKET_TYPE_OPTIONS,
+  FEATURE_OPTIONS,
+  FEATURE_LABELS,
 } from "#/lib/constants";
 
 export const Route = createFileRoute("/fixture/$fixtureId")({
@@ -166,12 +170,6 @@ function FixtureDetailContent() {
             Fixture
           </h1>
           <div className="flex gap-2 mt-1 flex-wrap">
-            <Badge variant="outline">{fixture.socketType}</Badge>
-            {fixture.features.map((f: string) => (
-              <Badge key={f} variant="secondary">
-                {f}
-              </Badge>
-            ))}
             <span className="text-muted-foreground text-sm">
               in {fixtureData.roomName} &middot; {fixtureData.propertyName}
             </span>
@@ -299,8 +297,14 @@ function BulbCard({
               {COLOUR_TEMP_LABELS[bulb.colourTemperature] ||
                 bulb.colourTemperature}
             </CardTitle>
-            <CardDescription className="mt-1">
-              {bulb.productName || "Unknown product"}
+            <CardDescription className="mt-1 flex flex-wrap gap-1">
+              <Badge variant="outline" className="text-xs">{bulb.socketType}</Badge>
+              {bulb.features?.map((f: string) => (
+                <Badge key={f} variant="secondary" className="text-xs">
+                  {FEATURE_LABELS[f] || f}
+                </Badge>
+              ))}
+              <span className="text-xs">{bulb.productName || "Unknown product"}</span>
             </CardDescription>
           </div>
           <Badge className={BULB_STATUS_COLORS[bulb.status]}>
@@ -437,6 +441,8 @@ function CreateBulbForm({
   onSuccess: () => void;
 }) {
   const create = useMutation(api.bulbs.create);
+  const [socketType, setSocketType] = useState("E26");
+  const [features, setFeatures] = useState<string[]>([]);
   const [wattage, setWattage] = useState("60");
   const [colourTemperature, setColourTemperature] = useState("warm");
   const [status, setStatus] = useState("working");
@@ -454,6 +460,8 @@ function CreateBulbForm({
     try {
       await create({
         fixtureId,
+        socketType: socketType as any,
+        features,
         wattage: Number(wattage),
         colourTemperature: colourTemperature as any,
         status: status as any,
@@ -475,6 +483,21 @@ function CreateBulbForm({
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
+          <Label>Socket Type</Label>
+          <Select value={socketType} onValueChange={setSocketType}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {SOCKET_TYPE_OPTIONS.map((s) => (
+                <SelectItem key={s} value={s}>
+                  {s}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-2">
           <Label>Wattage</Label>
           <Input
             type="number"
@@ -484,6 +507,8 @@ function CreateBulbForm({
             required
           />
         </div>
+      </div>
+      <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label>Colour Temperature</Label>
           <Select
@@ -502,17 +527,6 @@ function CreateBulbForm({
             </SelectContent>
           </Select>
         </div>
-      </div>
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label>Install Date</Label>
-          <Input
-            type="date"
-            value={installDate}
-            onChange={(e) => setInstallDate(e.target.value)}
-            required
-          />
-        </div>
         <div className="space-y-2">
           <Label>Status</Label>
           <Select value={status} onValueChange={setStatus}>
@@ -527,6 +541,38 @@ function CreateBulbForm({
               ))}
             </SelectContent>
           </Select>
+        </div>
+      </div>
+      <div className="space-y-2">
+        <Label>Install Date</Label>
+        <Input
+          type="date"
+          value={installDate}
+          onChange={(e) => setInstallDate(e.target.value)}
+          required
+        />
+      </div>
+      <div className="space-y-2">
+        <Label>Features</Label>
+        <div className="grid grid-cols-2 gap-2">
+          {FEATURE_OPTIONS.map((f) => (
+            <div key={f} className="flex items-center gap-2">
+              <Checkbox
+                id={`feature-${f}`}
+                checked={features.includes(f)}
+                onCheckedChange={(checked) =>
+                  setFeatures(
+                    checked
+                      ? [...features, f]
+                      : features.filter((x) => x !== f),
+                  )
+                }
+              />
+              <Label htmlFor={`feature-${f}`} className="text-sm font-normal">
+                {FEATURE_LABELS[f] || f}
+              </Label>
+            </div>
+          ))}
         </div>
       </div>
       <div className="space-y-2">
@@ -569,6 +615,8 @@ function EditBulbForm({
   onSuccess: () => void;
 }) {
   const update = useMutation(api.bulbs.update);
+  const [socketType, setSocketType] = useState(bulb.socketType || "E26");
+  const [features, setFeatures] = useState<string[]>(bulb.features || []);
   const [wattage, setWattage] = useState(String(bulb.wattage));
   const [colourTemperature, setColourTemperature] = useState(
     bulb.colourTemperature,
@@ -587,6 +635,8 @@ function EditBulbForm({
     try {
       await update({
         id: bulb._id,
+        socketType: socketType as any,
+        features,
         wattage: Number(wattage),
         colourTemperature: colourTemperature as any,
         installDate: new Date(installDate).getTime(),
@@ -607,6 +657,21 @@ function EditBulbForm({
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
+          <Label>Socket Type</Label>
+          <Select value={socketType} onValueChange={setSocketType}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {SOCKET_TYPE_OPTIONS.map((s) => (
+                <SelectItem key={s} value={s}>
+                  {s}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-2">
           <Label>Wattage</Label>
           <Input
             type="number"
@@ -616,6 +681,8 @@ function EditBulbForm({
             required
           />
         </div>
+      </div>
+      <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label>Colour Temperature</Label>
           <Select
@@ -634,15 +701,41 @@ function EditBulbForm({
             </SelectContent>
           </Select>
         </div>
+        <div className="space-y-2">
+          <Label>Install Date</Label>
+          <Input
+            type="date"
+            value={installDate}
+            onChange={(e) => setInstallDate(e.target.value)}
+            required
+          />
+        </div>
       </div>
       <div className="space-y-2">
-        <Label>Install Date</Label>
-        <Input
-          type="date"
-          value={installDate}
-          onChange={(e) => setInstallDate(e.target.value)}
-          required
-        />
+        <Label>Features</Label>
+        <div className="grid grid-cols-2 gap-2">
+          {FEATURE_OPTIONS.map((f) => (
+            <div key={f} className="flex items-center gap-2">
+              <Checkbox
+                id={`edit-feature-${f}`}
+                checked={features.includes(f)}
+                onCheckedChange={(checked) =>
+                  setFeatures(
+                    checked
+                      ? [...features, f]
+                      : features.filter((x) => x !== f),
+                  )
+                }
+              />
+              <Label
+                htmlFor={`edit-feature-${f}`}
+                className="text-sm font-normal"
+              >
+                {FEATURE_LABELS[f] || f}
+              </Label>
+            </div>
+          ))}
+        </div>
       </div>
       <div className="space-y-2">
         <Label>Product Name</Label>

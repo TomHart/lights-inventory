@@ -1,7 +1,7 @@
 import { getVerifiedUserId } from "./auth.helpers";
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
-import { bulbStatuses, colourTemperatures } from "./schema";
+import { bulbStatuses, colourTemperatures, socketTypes } from "./schema";
 
 export const listByFixture = query({
     args: { fixtureId: v.id("fixtures") },
@@ -25,6 +25,8 @@ export const listByFixture = query({
 export const create = mutation({
     args: {
         fixtureId: v.id("fixtures"),
+        socketType: socketTypes,
+        features: v.array(v.string()),
         installDate: v.number(),
         status: bulbStatuses,
         wattage: v.number(),
@@ -46,6 +48,8 @@ export const create = mutation({
         const now = Date.now();
         return await ctx.db.insert("bulbs", {
             fixtureId: args.fixtureId,
+            socketType: args.socketType,
+            features: args.features,
             installDate: args.installDate,
             status: args.status,
             wattage: args.wattage,
@@ -62,6 +66,8 @@ export const create = mutation({
 export const update = mutation({
     args: {
         id: v.id("bulbs"),
+        socketType: v.optional(socketTypes),
+        features: v.optional(v.array(v.string())),
         installDate: v.optional(v.number()),
         status: v.optional(bulbStatuses),
         wattage: v.optional(v.number()),
@@ -148,6 +154,8 @@ export const duplicate = mutation({
         const now = Date.now();
         return await ctx.db.insert("bulbs", {
             fixtureId: bulb.fixtureId,
+            socketType: bulb.socketType,
+            features: [...bulb.features],
             installDate: bulb.installDate,
             status: bulb.status,
             wattage: bulb.wattage,

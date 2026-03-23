@@ -31,7 +31,6 @@ import {
   SelectValue,
 } from "#/components/ui/select";
 import { Badge } from "#/components/ui/badge";
-import { Checkbox } from "#/components/ui/checkbox";
 import {
   Plus,
   Lightbulb,
@@ -45,9 +44,6 @@ import { toast } from "sonner";
 import { ConfirmDialog } from "#/components/ConfirmDialog";
 import {
   FIXTURE_LOCATION_LABELS,
-  SOCKET_TYPE_OPTIONS,
-  FEATURE_OPTIONS,
-  FEATURE_LABELS,
   ROOM_TYPE_LABELS,
 } from "#/lib/constants";
 
@@ -195,12 +191,9 @@ function FixtureCard({ fixture }: { fixture: any }) {
               {FIXTURE_LOCATION_LABELS[fixture.location] || fixture.location}
             </CardTitle>
             <CardDescription className="flex flex-wrap gap-1 mt-1">
-              <Badge variant="outline">{fixture.socketType}</Badge>
-              {fixture.features.map((f: string) => (
-                <Badge key={f} variant="secondary" className="text-xs">
-                  {FEATURE_LABELS[f] || f}
-                </Badge>
-              ))}
+              <Badge variant="outline">
+                {FIXTURE_LOCATION_LABELS[fixture.location] || fixture.location}
+              </Badge>
             </CardDescription>
           </div>
           <div className="flex gap-1">
@@ -297,21 +290,17 @@ function CreateFixtureForm({
 }) {
   const create = useMutation(api.fixtures.create);
   const [location, setLocation] = useState("");
-  const [socketType, setSocketType] = useState("");
-  const [features, setFeatures] = useState<string[]>([]);
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!location || !socketType) return;
+    if (!location) return;
     setLoading(true);
     try {
       await create({
         roomId,
         location: location as any,
-        socketType: socketType as any,
-        features,
         notes: notes || undefined,
       });
       toast.success("Fixture created");
@@ -341,44 +330,6 @@ function CreateFixtureForm({
         </Select>
       </div>
       <div className="space-y-2">
-        <Label>Socket Type</Label>
-        <Select value={socketType} onValueChange={setSocketType}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select socket type" />
-          </SelectTrigger>
-          <SelectContent>
-            {SOCKET_TYPE_OPTIONS.map((s) => (
-              <SelectItem key={s} value={s}>
-                {s}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="space-y-2">
-        <Label>Features</Label>
-        <div className="grid grid-cols-2 gap-2">
-          {FEATURE_OPTIONS.map((f) => (
-            <div key={f} className="flex items-center gap-2">
-              <Checkbox
-                id={`feature-${f}`}
-                checked={features.includes(f)}
-                onCheckedChange={(checked) =>
-                  setFeatures(
-                    checked
-                      ? [...features, f]
-                      : features.filter((x) => x !== f),
-                  )
-                }
-              />
-              <Label htmlFor={`feature-${f}`} className="text-sm font-normal">
-                {FEATURE_LABELS[f] || f}
-              </Label>
-            </div>
-          ))}
-        </div>
-      </div>
-      <div className="space-y-2">
         <Label>Notes (optional)</Label>
         <Textarea
           placeholder="e.g. Hard to reach, needs ladder"
@@ -389,7 +340,7 @@ function CreateFixtureForm({
       <Button
         type="submit"
         className="w-full"
-        disabled={loading || !location || !socketType}
+        disabled={loading || !location}
       >
         {loading ? "Creating..." : "Create Fixture"}
       </Button>
@@ -406,8 +357,6 @@ function EditFixtureForm({
 }) {
   const update = useMutation(api.fixtures.update);
   const [location, setLocation] = useState(fixture.location);
-  const [socketType, setSocketType] = useState(fixture.socketType);
-  const [features, setFeatures] = useState<string[]>(fixture.features);
   const [notes, setNotes] = useState(fixture.notes || "");
   const [loading, setLoading] = useState(false);
 
@@ -418,8 +367,6 @@ function EditFixtureForm({
       await update({
         id: fixture._id,
         location,
-        socketType,
-        features,
         notes: notes || undefined,
       });
       toast.success("Fixture updated");
@@ -447,47 +394,6 @@ function EditFixtureForm({
             ))}
           </SelectContent>
         </Select>
-      </div>
-      <div className="space-y-2">
-        <Label>Socket Type</Label>
-        <Select value={socketType} onValueChange={setSocketType}>
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {SOCKET_TYPE_OPTIONS.map((s) => (
-              <SelectItem key={s} value={s}>
-                {s}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="space-y-2">
-        <Label>Features</Label>
-        <div className="grid grid-cols-2 gap-2">
-          {FEATURE_OPTIONS.map((f) => (
-            <div key={f} className="flex items-center gap-2">
-              <Checkbox
-                id={`edit-feature-${f}`}
-                checked={features.includes(f)}
-                onCheckedChange={(checked) =>
-                  setFeatures(
-                    checked
-                      ? [...features, f]
-                      : features.filter((x) => x !== f),
-                  )
-                }
-              />
-              <Label
-                htmlFor={`edit-feature-${f}`}
-                className="text-sm font-normal"
-              >
-                {FEATURE_LABELS[f] || f}
-              </Label>
-            </div>
-          ))}
-        </div>
       </div>
       <div className="space-y-2">
         <Label>Notes</Label>

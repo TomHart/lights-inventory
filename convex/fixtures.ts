@@ -1,7 +1,7 @@
 import { getVerifiedUserId } from "./auth.helpers";
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
-import { fixtureLocations, socketTypes } from "./schema";
+import { fixtureLocations } from "./schema";
 
 export const listByRoom = query({
     args: { roomId: v.id("rooms") },
@@ -61,8 +61,6 @@ export const create = mutation({
     args: {
         roomId: v.id("rooms"),
         location: fixtureLocations,
-        socketType: socketTypes,
-        features: v.array(v.string()),
         notes: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
@@ -77,8 +75,6 @@ export const create = mutation({
         return await ctx.db.insert("fixtures", {
             roomId: args.roomId,
             location: args.location,
-            socketType: args.socketType,
-            features: args.features,
             notes: args.notes,
             createdAt: now,
             updatedAt: now,
@@ -90,8 +86,6 @@ export const update = mutation({
     args: {
         id: v.id("fixtures"),
         location: fixtureLocations,
-        socketType: socketTypes,
-        features: v.array(v.string()),
         notes: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
@@ -106,8 +100,6 @@ export const update = mutation({
             throw new Error("Not found");
         await ctx.db.patch(args.id, {
             location: args.location,
-            socketType: args.socketType,
-            features: args.features,
             notes: args.notes,
             updatedAt: Date.now(),
         });
@@ -131,8 +123,6 @@ export const duplicate = mutation({
         const newFixtureId = await ctx.db.insert("fixtures", {
             roomId: fixture.roomId,
             location: fixture.location,
-            socketType: fixture.socketType,
-            features: [...fixture.features],
             notes: fixture.notes ? `(Copy) ${fixture.notes}` : "(Copy)",
             createdAt: now,
             updatedAt: now,
@@ -147,6 +137,8 @@ export const duplicate = mutation({
         for (const bulb of bulbs) {
             await ctx.db.insert("bulbs", {
                 fixtureId: newFixtureId,
+                socketType: bulb.socketType,
+                features: [...bulb.features],
                 installDate: bulb.installDate,
                 status: bulb.status,
                 wattage: bulb.wattage,
