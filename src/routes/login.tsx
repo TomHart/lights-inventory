@@ -1,7 +1,9 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useConvexAuth } from "convex/react";
+import { useAction } from "convex/react";
+import { api } from "../../convex/_generated/api";
 import { useAuthActions } from "@convex-dev/auth/react";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { Button } from "#/components/ui/button";
 import { Input } from "#/components/ui/input";
 import { Label } from "#/components/ui/label";
@@ -16,6 +18,29 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "#/components/ui/tabs";
 import { Lightbulb } from "lucide-react";
 
 const PENDING_VERIFICATION_KEY = "__lightsInventoryPendingVerification";
+const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY as
+  | string
+  | undefined;
+
+/** Load the reCAPTCHA v3 script once and resolve when ready. */
+let recaptchaReady: Promise<void> | null = null;
+function ensureRecaptchaLoaded(): Promise<void> {
+  if (!RECAPTCHA_SITE_KEY) return Promise.resolve();
+  if (recaptchaReady) return recaptchaReady;
+  recaptchaReady = new Promise<void>((resolve) => {
+    if ((window as any).grecaptcha?.ready) {
+      (window as any).grecaptcha.ready(() => resolve());
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = `https://www.google.com/recaptcha/api.js?render=${RECAPTCHA_SITE_KEY}`;
+    script.async = true;
+    script.onload = () =>
+      (window as any).grecaptcha.ready(() => resolve());
+    document.head.appendChild(script);
+  });
+  return recaptchaReady;
+}
 
 export const Route = createFileRoute("/login")({
   component: LoginPage,
@@ -94,10 +119,27 @@ function AuthForm({
   onVerificationNeeded: (email: string) => void;
 }) {
   const { signIn } = useAuthActions();
+  const verifyRecaptcha = useAction(api.recaptcha.verify);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Eagerly load the reCAPTCHA script when the form mounts
+  useEffect(() => {
+    void ensureRecaptchaLoaded();
+  }, []);
+
+  const getRecaptchaToken = useCallback(
+    async (action: string): Promise<string> => {
+      if (!RECAPTCHA_SITE_KEY) return "";
+      await ensureRecaptchaLoaded();
+      return (window as any).grecaptcha.execute(RECAPTCHA_SITE_KEY, {
+        action,
+      });
+    },
+    [],
+  );
 
   const passwordStrength = useMemo(() => {
     if (flow !== "signUp" || password.length === 0) return null;
@@ -123,6 +165,12 @@ function AuthForm({
     }
     setLoading(true);
     try {
+      // --- reCAPTCHA verification ---
+      const recaptchaToken = await getRecaptchaToken(flow);
+      if (recaptchaToken) {
+        await verifyRecaptcha({ token: recaptchaToken });
+      }
+
       const result = await signIn("password", { email, password, flow });
       // If signingIn is false and no error, verification code was sent
       if (!(result as any)?.signingIn) {
@@ -130,7 +178,9 @@ function AuthForm({
       }
     } catch (err: any) {
       const msg = (err?.message ?? "").toLowerCase();
-      if (
+      if (msg.includes("recaptcha")) {
+        setError("reCAPTCHA verification failed. Please try again.");
+      } else if (
         msg.includes("invalidaccountid") ||
         msg.includes("invalid") ||
         msg.includes("could not find") ||

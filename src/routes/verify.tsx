@@ -78,8 +78,6 @@ function VerifyForm({ email }: { email: string }) {
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [resending, setResending] = useState(false);
-  const [resent, setResent] = useState(false);
 
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -99,23 +97,6 @@ function VerifyForm({ email }: { email: string }) {
       );
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleResend = async () => {
-    setResending(true);
-    setError("");
-    setResent(false);
-    try {
-      await signIn("password", {
-        email,
-        flow: "signIn",
-      });
-      setResent(true);
-    } catch {
-      setError("Please go back and sign in again to receive a new code.");
-    } finally {
-      setResending(false);
     }
   };
 
@@ -140,11 +121,6 @@ function VerifyForm({ email }: { email: string }) {
         />
       </div>
       {error && <p className="text-sm text-destructive">{error}</p>}
-      {resent && (
-        <p className="text-sm text-green-600 dark:text-green-400">
-          A new code has been sent to your email.
-        </p>
-      )}
       <Button type="submit" className="w-full" disabled={loading}>
         {loading ? "Verifying..." : "Verify Email"}
       </Button>
@@ -157,15 +133,6 @@ function VerifyForm({ email }: { email: string }) {
         >
           <ArrowLeft className="h-4 w-4 mr-1" />
           Back
-        </Button>
-        <Button
-          type="button"
-          variant="link"
-          size="sm"
-          onClick={handleResend}
-          disabled={resending}
-        >
-          {resending ? "Sending..." : "Resend code"}
         </Button>
       </div>
     </form>

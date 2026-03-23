@@ -15,6 +15,7 @@ import type * as http from "../http.js";
 import type * as inventory from "../inventory.js";
 import type * as maintenance from "../maintenance.js";
 import type * as properties from "../properties.js";
+import type * as recaptcha from "../recaptcha.js";
 import type * as reminders from "../reminders.js";
 import type * as rooms from "../rooms.js";
 import type * as search from "../search.js";
@@ -33,6 +34,7 @@ declare const fullApi: ApiFromModules<{
   inventory: typeof inventory;
   maintenance: typeof maintenance;
   properties: typeof properties;
+  recaptcha: typeof recaptcha;
   reminders: typeof reminders;
   rooms: typeof rooms;
   search: typeof search;

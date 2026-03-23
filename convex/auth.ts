@@ -15,34 +15,44 @@ export const { auth, signIn, signOut, store } = convexAuth({
           identifier: string;
           token: string;
         }) {
-          const apiKey = process.env.RESEND_API_KEY;
+          const apiKey = process.env.MAILGUN_SECRET;
           if (!apiKey) {
             // Development fallback: log the code to the Convex dashboard
             console.log(
-              `[DEV] Verification code for ${email}: ${token}`,
+              `[DEV ONLY] Verification code for ${email}: ${token}`,
             );
             return;
           }
+          const domain =
+            process.env.MAILGUN_DOMAIN ?? "mail.example.com";
           const fromAddress =
             process.env.AUTH_EMAIL_FROM ??
-            "Lights Inventory <noreply@example.com>";
-          const res = await fetch("https://api.resend.com/emails", {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${apiKey}`,
-              "Content-Type": "application/json",
+            "Lights Inventory <noreply@" + domain + ">";
+          const form = new URLSearchParams();
+          form.append("from", fromAddress);
+          form.append("to", email);
+          form.append("subject", "Verify your email - Lights Inventory");
+          form.append(
+            "html",
+            [
+              "<h2>Verify your email</h2>",
+              `<p>Your verification code is: <strong>${token}</strong></p>`,
+              "<p>This code expires in 1 hour.</p>",
+            ].join(""),
+          );
+          const mailgunBase =
+            process.env.MAILGUN_API_URL ?? "https://api.eu.mailgun.net";
+          const res = await fetch(
+            `${mailgunBase}/v3/${domain}/messages`,
+            {
+              method: "POST",
+              headers: {
+                Authorization:
+                  "Basic " + btoa("api:" + apiKey),
+              },
+              body: form,
             },
-            body: JSON.stringify({
-              from: fromAddress,
-              to: [email],
-              subject: "Verify your email - Lights Inventory",
-              html: [
-                "<h2>Verify your email</h2>",
-                `<p>Your verification code is: <strong>${token}</strong></p>`,
-                "<p>This code expires in 1 hour.</p>",
-              ].join(""),
-            }),
-          });
+          );
           if (!res.ok) {
             const body = await res.text();
             throw new Error(`Failed to send verification email: ${body}`);
