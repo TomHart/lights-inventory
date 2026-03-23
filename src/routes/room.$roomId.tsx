@@ -18,6 +18,7 @@ import { Skeleton } from "#/components/ui/skeleton";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -155,6 +156,9 @@ function RoomDetailContent() {
             <DialogContent className="max-w-lg">
               <DialogHeader>
                 <DialogTitle>Add Fixture</DialogTitle>
+                <DialogDescription className="sr-only">
+                  Enter the details for a new fixture.
+                </DialogDescription>
               </DialogHeader>
               <CreateFixtureForm
                 roomId={roomId as Id<"rooms">}
@@ -233,6 +237,9 @@ function FixtureCard({ fixture }: { fixture: any }) {
               <DialogContent className="max-w-lg">
                 <DialogHeader>
                   <DialogTitle>Edit Fixture</DialogTitle>
+                  <DialogDescription className="sr-only">
+                    Update the details for this fixture.
+                  </DialogDescription>
                 </DialogHeader>
                 <EditFixtureForm
                   fixture={fixture}

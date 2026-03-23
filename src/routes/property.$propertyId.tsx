@@ -18,6 +18,7 @@ import { Skeleton } from "#/components/ui/skeleton";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -142,6 +143,9 @@ function PropertyDetailContent() {
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Add Room</DialogTitle>
+                <DialogDescription className="sr-only">
+                  Enter the details for a new room.
+                </DialogDescription>
               </DialogHeader>
               <CreateRoomForm
                 propertyId={propertyId as Id<"properties">}
@@ -206,6 +210,9 @@ function RoomCard({
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>Edit Room</DialogTitle>
+                  <DialogDescription className="sr-only">
+                    Update the details for this room.
+                  </DialogDescription>
                 </DialogHeader>
                 <EditRoomForm
                   room={room}

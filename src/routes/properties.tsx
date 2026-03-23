@@ -17,6 +17,7 @@ import { Skeleton } from "#/components/ui/skeleton";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -104,6 +105,9 @@ function PropertiesContent() {
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Create Property</DialogTitle>
+              <DialogDescription className="sr-only">
+                Enter the details for a new property.
+              </DialogDescription>
             </DialogHeader>
             <CreatePropertyForm onSuccess={() => setCreateOpen(false)} />
           </DialogContent>
@@ -159,6 +163,9 @@ function PropertyCard({ property }: { property: any }) {
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>Edit Property</DialogTitle>
+                  <DialogDescription className="sr-only">
+                    Update the details for this property.
+                  </DialogDescription>
                 </DialogHeader>
                 <EditPropertyForm
                   property={property}

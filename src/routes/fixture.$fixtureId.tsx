@@ -19,6 +19,7 @@ import { Skeleton } from "#/components/ui/skeleton";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -186,6 +187,9 @@ function FixtureDetailContent() {
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>Add Maintenance Log</DialogTitle>
+                  <DialogDescription className="sr-only">
+                    Record a maintenance action for this fixture.
+                  </DialogDescription>
                 </DialogHeader>
                 <AddMaintenanceLogForm
                   fixtureId={fixtureId as Id<"fixtures">}
@@ -202,6 +206,9 @@ function FixtureDetailContent() {
               <DialogContent className="max-w-lg">
                 <DialogHeader>
                   <DialogTitle>Add Bulb</DialogTitle>
+                  <DialogDescription className="sr-only">
+                    Enter the details for a new bulb.
+                  </DialogDescription>
                 </DialogHeader>
                 <CreateBulbForm
                   fixtureId={fixtureId as Id<"fixtures">}
@@ -373,6 +380,9 @@ function BulbCard({
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Set Replacement Reminder</DialogTitle>
+                <DialogDescription className="sr-only">
+                  Set a date to be reminded to replace this bulb.
+                </DialogDescription>
               </DialogHeader>
               <ReminderForm
                 bulbId={bulb._id}
@@ -389,6 +399,9 @@ function BulbCard({
             <DialogContent className="max-w-lg">
               <DialogHeader>
                 <DialogTitle>Edit Bulb</DialogTitle>
+                <DialogDescription className="sr-only">
+                  Update the details for this bulb.
+                </DialogDescription>
               </DialogHeader>
               <EditBulbForm
                 bulb={bulb}

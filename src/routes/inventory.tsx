@@ -17,6 +17,7 @@ import { Skeleton } from "#/components/ui/skeleton";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -115,6 +116,9 @@ function InventoryContent() {
           <DialogContent className="max-w-lg">
             <DialogHeader>
               <DialogTitle>Add Spare Bulbs</DialogTitle>
+              <DialogDescription className="sr-only">
+                Enter the details for spare bulbs to add to inventory.
+              </DialogDescription>
             </DialogHeader>
             <CreateSpareForm onSuccess={() => setCreateOpen(false)} />
           </DialogContent>
@@ -177,6 +181,9 @@ function SpareCard({ spare }: { spare: any }) {
               <DialogContent className="max-w-lg">
                 <DialogHeader>
                   <DialogTitle>Edit Spare</DialogTitle>
+                  <DialogDescription className="sr-only">
+                    Update the details for this spare bulb entry.
+                  </DialogDescription>
                 </DialogHeader>
                 <EditSpareForm
                   spare={spare}
