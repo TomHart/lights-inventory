@@ -15,7 +15,35 @@ export const listDue = query({
       )
       .collect();
 
-    return reminders.filter((r) => r.reminderDate <= now);
+    const due = reminders.filter((r) => r.reminderDate <= now);
+
+    return Promise.all(
+      due.map(async (r) => {
+        const bulb = await ctx.db.get(r.bulbId);
+        const fixture = bulb ? await ctx.db.get(bulb.fixtureId) : null;
+        const room = fixture ? await ctx.db.get(fixture.roomId) : null;
+        return {
+          ...r,
+          fixtureId: bulb?.fixtureId ?? null,
+          fixtureLocation: fixture?.location ?? null,
+          roomName: room?.name ?? null,
+          bulbWattage: bulb?.wattage ?? null,
+          bulbProductName: bulb?.productName ?? null,
+        };
+      }),
+    );
+  },
+});
+
+export const dismiss = mutation({
+  args: { id: v.id("reminders") },
+  handler: async (ctx, args) => {
+    const userId = await getVerifiedUserId(ctx);
+    if (!userId) throw new Error("Not authenticated");
+    const reminder = await ctx.db.get(args.id);
+    if (!reminder || reminder.userId !== userId)
+      throw new Error("Not authorized");
+    await ctx.db.patch(args.id, { isActive: false });
   },
 });
 

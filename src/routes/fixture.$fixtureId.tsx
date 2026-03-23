@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { AuthGuard } from "#/components/AuthGuard";
 import { Button } from "#/components/ui/button";
 import { Input } from "#/components/ui/input";
@@ -61,6 +61,9 @@ import {
 export const Route = createFileRoute("/fixture/$fixtureId")({
   component: FixtureDetailPage,
   ssr: false,
+  validateSearch: (search: Record<string, unknown>): { bulbId?: string } => ({
+    bulbId: typeof search.bulbId === "string" ? search.bulbId : undefined,
+  }),
 });
 
 function FixtureDetailPage() {
@@ -73,6 +76,7 @@ function FixtureDetailPage() {
 
 function FixtureDetailContent() {
   const { fixtureId } = Route.useParams();
+  const { bulbId: highlightBulbId } = Route.useSearch();
   const fixture = useQuery(api.fixtures.get, {
     id: fixtureId as Id<"fixtures">,
   });
@@ -192,6 +196,7 @@ function FixtureDetailContent() {
             key={bulb._id}
             bulb={bulb}
             fixtureId={fixtureId as Id<"fixtures">}
+            highlight={bulb._id === highlightBulbId}
           />
         ))}
         <Dialog open={createBulbOpen} onOpenChange={setCreateBulbOpen}>
@@ -272,22 +277,31 @@ function FixtureDetailContent() {
 
 function BulbCard({
   bulb,
+  highlight,
 }: {
   bulb: any;
   fixtureId: Id<"fixtures">;
+  highlight?: boolean;
 }) {
   const updateStatus = useMutation(api.bulbs.updateStatus);
   const duplicateBulb = useMutation(api.bulbs.duplicate);
   const removeBulb = useMutation(api.bulbs.remove);
   const [editOpen, setEditOpen] = useState(false);
   const [reminderOpen, setReminderOpen] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (highlight && cardRef.current) {
+      cardRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [highlight]);
 
   const daysSinceInstall = Math.floor(
     (Date.now() - bulb.installDate) / (1000 * 60 * 60 * 24),
   );
 
   return (
-    <Card>
+    <Card ref={cardRef} className={highlight ? "ring-2 ring-amber-500 ring-offset-2" : ""}>
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div>

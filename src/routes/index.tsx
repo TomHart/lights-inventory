@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { AuthGuard } from "#/components/AuthGuard";
 import {
@@ -18,8 +18,11 @@ import {
     Bell,
     Package,
     Zap,
+    Check,
 } from "lucide-react";
 import { Button } from "#/components/ui/button";
+import { FIXTURE_LOCATION_LABELS } from "#/lib/constants";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/")({
     component: DashboardPage,
@@ -37,6 +40,7 @@ function DashboardPage() {
 function DashboardContent() {
     const stats = useQuery(api.search.dashboardStats);
     const dueReminders = useQuery(api.reminders.listDue);
+    const dismissReminder = useMutation(api.reminders.dismiss);
 
     if (stats === undefined) {
         return (
@@ -220,14 +224,49 @@ function DashboardContent() {
                                 No reminders due. All bulbs are on schedule.
                             </p>
                         ) : (
-                            <ul className="space-y-2">
+                            <ul className="space-y-1">
                                 {dueReminders.slice(0, 5).map((r: any) => (
-                                    <li
-                                        key={r._id}
-                                        className="flex items-center gap-2 text-sm text-muted-foreground"
-                                    >
-                                        <AlertTriangle className="h-4 w-4 text-amber-500 flex-shrink-0"/>
-                                        {r.message}
+                                    <li key={r._id} className="flex items-center gap-1">
+                                        {r.fixtureId ? (
+                                            <Link
+                                                to="/fixture/$fixtureId"
+                                                params={{ fixtureId: r.fixtureId }}
+                                                search={{ bulbId: r.bulbId }}
+                                                className="flex-1 flex items-start gap-2 text-sm text-muted-foreground rounded-md p-2 hover:bg-muted transition-colors min-w-0"
+                                            >
+                                                <AlertTriangle className="h-4 w-4 text-amber-500 flex-shrink-0 mt-0.5"/>
+                                                <div className="min-w-0">
+                                                    <p>{r.message}</p>
+                                                    <p className="text-xs text-muted-foreground/70 mt-0.5">
+                                                        {[
+                                                            r.roomName,
+                                                            r.fixtureLocation && FIXTURE_LOCATION_LABELS[r.fixtureLocation],
+                                                            r.bulbProductName,
+                                                            r.bulbWattage && `${r.bulbWattage}W`,
+                                                        ].filter(Boolean).join(" · ")}
+                                                    </p>
+                                                </div>
+                                            </Link>
+                                        ) : (
+                                            <div className="flex-1 flex items-center gap-2 text-sm text-muted-foreground p-2">
+                                                <AlertTriangle className="h-4 w-4 text-amber-500 flex-shrink-0"/>
+                                                {r.message}
+                                            </div>
+                                        )}
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-7 w-7 flex-shrink-0 text-muted-foreground hover:text-green-600"
+                                            title="Mark as done"
+                                            onClick={async (e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                await dismissReminder({ id: r._id });
+                                                toast.success("Reminder dismissed");
+                                            }}
+                                        >
+                                            <Check className="h-4 w-4" />
+                                        </Button>
                                     </li>
                                 ))}
                             </ul>
