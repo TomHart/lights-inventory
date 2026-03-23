@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useState } from "react";
+import { AuthGuard } from "#/components/AuthGuard";
 import { Button } from "#/components/ui/button";
 import { Input } from "#/components/ui/input";
 import { Label } from "#/components/ui/label";
@@ -11,6 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "#/components/ui/card";
+import { Skeleton } from "#/components/ui/skeleton";
 import {
   Select,
   SelectContent,
@@ -43,6 +45,14 @@ export const Route = createFileRoute("/search")({
 });
 
 function SearchPage() {
+  return (
+    <AuthGuard>
+      <SearchContent />
+    </AuthGuard>
+  );
+}
+
+function SearchContent() {
   const [socketType, setSocketType] = useState<string>("");
   const [minWattage, setMinWattage] = useState<string>("");
   const [maxWattage, setMaxWattage] = useState<string>("");
@@ -253,8 +263,23 @@ function SearchPage() {
 
       {/* Results */}
       {results === undefined ? (
-        <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+        <div className="space-y-2">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="flex items-center gap-3 rounded-lg border p-3">
+              <Skeleton className="h-4 w-4" />
+              <Skeleton className="h-5 w-5 rounded" />
+              <div className="flex-1">
+                <div className="flex gap-2 mb-1">
+                  <Skeleton className="h-5 w-12" />
+                  <Skeleton className="h-5 w-14" />
+                  <Skeleton className="h-5 w-16" />
+                  <Skeleton className="h-5 w-20" />
+                </div>
+                <Skeleton className="h-3 w-60" />
+              </div>
+              <Skeleton className="h-8 w-8" />
+            </div>
+          ))}
         </div>
       ) : results.length === 0 ? (
         <Card>

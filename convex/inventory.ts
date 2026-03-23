@@ -1,4 +1,4 @@
-import { getAuthUserId } from "@convex-dev/auth/server";
+import { getVerifiedUserId } from "./auth.helpers";
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { colourTemperatures, socketTypes } from "./schema";
@@ -6,7 +6,7 @@ import { colourTemperatures, socketTypes } from "./schema";
 export const list = query({
     args: {},
     handler: async (ctx) => {
-        const userId = await getAuthUserId(ctx);
+        const userId = await getVerifiedUserId(ctx);
         if (!userId) return [];
         return await ctx.db
             .query("spareBulbs")
@@ -26,7 +26,7 @@ export const create = mutation({
         notes: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
-        const userId = await getAuthUserId(ctx);
+        const userId = await getVerifiedUserId(ctx);
         if (!userId) throw new Error("Not authenticated");
         const now = Date.now();
         return await ctx.db.insert("spareBulbs", {
@@ -56,7 +56,7 @@ export const update = mutation({
         notes: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
-        const userId = await getAuthUserId(ctx);
+        const userId = await getVerifiedUserId(ctx);
         if (!userId) throw new Error("Not authenticated");
         const spare = await ctx.db.get(args.id);
         if (!spare || spare.userId !== userId) throw new Error("Not found");
@@ -79,7 +79,7 @@ export const adjustQuantity = mutation({
         delta: v.number(),
     },
     handler: async (ctx, args) => {
-        const userId = await getAuthUserId(ctx);
+        const userId = await getVerifiedUserId(ctx);
         if (!userId) throw new Error("Not authenticated");
         const spare = await ctx.db.get(args.id);
         if (!spare || spare.userId !== userId) throw new Error("Not found");
@@ -94,7 +94,7 @@ export const adjustQuantity = mutation({
 export const remove = mutation({
     args: { id: v.id("spareBulbs") },
     handler: async (ctx, args) => {
-        const userId = await getAuthUserId(ctx);
+        const userId = await getVerifiedUserId(ctx);
         if (!userId) throw new Error("Not authenticated");
         const spare = await ctx.db.get(args.id);
         if (!spare || spare.userId !== userId) throw new Error("Not found");

@@ -3,6 +3,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
 import { useState } from "react";
+import { AuthGuard } from "#/components/AuthGuard";
 import { Button } from "#/components/ui/button";
 import { Input } from "#/components/ui/input";
 import { Label } from "#/components/ui/label";
@@ -13,6 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from "#/components/ui/card";
+import { Skeleton } from "#/components/ui/skeleton";
 import {
   Dialog,
   DialogContent,
@@ -39,6 +41,7 @@ import {
   Zap,
 } from "lucide-react";
 import { toast } from "sonner";
+import { ConfirmDialog } from "#/components/ConfirmDialog";
 import { ROOM_TYPE_LABELS } from "#/lib/constants";
 
 export const Route = createFileRoute("/property/$propertyId")({
@@ -47,6 +50,14 @@ export const Route = createFileRoute("/property/$propertyId")({
 });
 
 function PropertyDetailPage() {
+  return (
+    <AuthGuard>
+      <PropertyDetailContent />
+    </AuthGuard>
+  );
+}
+
+function PropertyDetailContent() {
   const { propertyId } = Route.useParams();
   const property = useQuery(api.properties.get, {
     id: propertyId as Id<"properties">,
@@ -58,8 +69,39 @@ function PropertyDetailPage() {
 
   if (property === undefined || rooms === undefined) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      <div className="mx-auto max-w-6xl px-4 py-8">
+        <div className="mb-6">
+          <Skeleton className="h-4 w-36 mb-4" />
+          <div className="flex items-center justify-between">
+            <div>
+              <Skeleton className="h-9 w-48 mb-2" />
+              <Skeleton className="h-5 w-20" />
+            </div>
+            <Skeleton className="h-10 w-32" />
+          </div>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Card key={i}>
+              <CardHeader className="pb-3">
+                <Skeleton className="h-5 w-36 mb-1" />
+                <Skeleton className="h-5 w-20" />
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-3 gap-2 text-center text-sm mb-4">
+                  {Array.from({ length: 3 }).map((_, j) => (
+                    <div key={j} className="rounded-lg bg-muted p-2">
+                      <Skeleton className="mx-auto h-4 w-4 mb-1" />
+                      <Skeleton className="mx-auto h-5 w-6 mb-1" />
+                      <Skeleton className="mx-auto h-3 w-10" />
+                    </div>
+                  ))}
+                </div>
+                <Skeleton className="h-10 w-full" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
     );
   }
@@ -171,19 +213,24 @@ function RoomCard({
                 />
               </DialogContent>
             </Dialog>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 text-destructive hover:text-destructive"
-              onClick={async () => {
-                if (confirm("Delete this room and all its contents?")) {
-                  await removeRoom({ id: room._id });
-                  toast.success("Room deleted");
-                }
+            <ConfirmDialog
+              trigger={
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-destructive hover:text-destructive"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              }
+              title="Delete room?"
+              description="This will permanently delete this room and all its fixtures and bulbs. This action cannot be undone."
+              actionLabel="Delete"
+              onConfirm={async () => {
+                await removeRoom({ id: room._id });
+                toast.success("Room deleted");
               }}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
+            />
           </div>
         </div>
       </CardHeader>

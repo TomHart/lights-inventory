@@ -78,9 +78,10 @@ function NavLinks({ mobile, onNavigate }: { mobile?: boolean; onNavigate?: () =>
   return (
     <>
       <Link
-        to="/dashboard"
+        to="/"
         className={linkClass}
         activeProps={{ className: activeClass }}
+        activeOptions={{ exact: true }}
         onClick={onNavigate}
       >
         <Home className="h-4 w-4" /> Dashboard
@@ -123,7 +124,7 @@ function SignOutButton() {
       size="sm"
       onClick={async () => {
         await signOut();
-        navigate({ to: "/" });
+        navigate({ to: "/login" });
       }}
     >
       <LogOut className="h-4 w-4 mr-1" /> Sign Out

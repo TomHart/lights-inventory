@@ -37,7 +37,7 @@ function DefaultNotFound() {
         <h2 className="mb-2 text-4xl font-bold text-muted-foreground">404</h2>
         <p className="mb-4 text-lg text-muted-foreground">Page not found</p>
         <a
-          href="/dashboard"
+          href="/"
           className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
         >
           Go to Dashboard

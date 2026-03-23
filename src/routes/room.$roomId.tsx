@@ -3,6 +3,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
 import { useState } from "react";
+import { AuthGuard } from "#/components/AuthGuard";
 import { Button } from "#/components/ui/button";
 import { Label } from "#/components/ui/label";
 import { Textarea } from "#/components/ui/textarea";
@@ -13,6 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from "#/components/ui/card";
+import { Skeleton } from "#/components/ui/skeleton";
 import {
   Dialog,
   DialogContent,
@@ -40,6 +42,7 @@ import {
   Copy,
 } from "lucide-react";
 import { toast } from "sonner";
+import { ConfirmDialog } from "#/components/ConfirmDialog";
 import {
   FIXTURE_LOCATION_LABELS,
   SOCKET_TYPE_OPTIONS,
@@ -54,6 +57,14 @@ export const Route = createFileRoute("/room/$roomId")({
 });
 
 function RoomDetailPage() {
+  return (
+    <AuthGuard>
+      <RoomDetailContent />
+    </AuthGuard>
+  );
+}
+
+function RoomDetailContent() {
   const { roomId } = Route.useParams();
   const room = useQuery(api.rooms.get, { id: roomId as Id<"rooms"> });
   const fixtures = useQuery(api.fixtures.listByRoom, {
@@ -63,8 +74,40 @@ function RoomDetailPage() {
 
   if (room === undefined || fixtures === undefined) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      <div className="mx-auto max-w-6xl px-4 py-8">
+        <div className="mb-6">
+          <Skeleton className="h-4 w-36 mb-4" />
+          <div className="flex items-center justify-between">
+            <div>
+              <Skeleton className="h-9 w-48 mb-2" />
+              <div className="flex gap-2 mt-1">
+                <Skeleton className="h-5 w-20" />
+                <Skeleton className="h-5 w-24" />
+              </div>
+            </div>
+            <Skeleton className="h-10 w-32" />
+          </div>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Card key={i}>
+              <CardHeader className="pb-3">
+                <Skeleton className="h-5 w-32 mb-1" />
+                <div className="flex gap-1 mt-1">
+                  <Skeleton className="h-5 w-16" />
+                  <Skeleton className="h-5 w-14" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="flex gap-4 text-sm mb-4">
+                  <Skeleton className="h-5 w-20" />
+                  <Skeleton className="h-5 w-20" />
+                </div>
+                <Skeleton className="h-10 w-full" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
     );
   }
@@ -197,19 +240,24 @@ function FixtureCard({ fixture }: { fixture: any }) {
                 />
               </DialogContent>
             </Dialog>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 text-destructive hover:text-destructive"
-              onClick={async () => {
-                if (confirm("Delete this fixture and all its bulbs?")) {
-                  await removeFixture({ id: fixture._id });
-                  toast.success("Fixture deleted");
-                }
+            <ConfirmDialog
+              trigger={
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-destructive hover:text-destructive"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              }
+              title="Delete fixture?"
+              description="This will permanently delete this fixture and all its bulbs. This action cannot be undone."
+              actionLabel="Delete"
+              onConfirm={async () => {
+                await removeFixture({ id: fixture._id });
+                toast.success("Fixture deleted");
               }}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
+            />
           </div>
         </div>
       </CardHeader>

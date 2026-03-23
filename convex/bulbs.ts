@@ -1,4 +1,4 @@
-import { getAuthUserId } from "@convex-dev/auth/server";
+import { getVerifiedUserId } from "./auth.helpers";
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { bulbStatuses, colourTemperatures } from "./schema";
@@ -6,7 +6,7 @@ import { bulbStatuses, colourTemperatures } from "./schema";
 export const listByFixture = query({
     args: { fixtureId: v.id("fixtures") },
     handler: async (ctx, args) => {
-        const userId = await getAuthUserId(ctx);
+        const userId = await getVerifiedUserId(ctx);
         if (!userId) return [];
         const fixture = await ctx.db.get(args.fixtureId);
         if (!fixture) return [];
@@ -34,7 +34,7 @@ export const create = mutation({
         productUrl: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
-        const userId = await getAuthUserId(ctx);
+        const userId = await getVerifiedUserId(ctx);
         if (!userId) throw new Error("Not authenticated");
         const fixture = await ctx.db.get(args.fixtureId);
         if (!fixture) throw new Error("Not found");
@@ -71,7 +71,7 @@ export const update = mutation({
         productUrl: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
-        const userId = await getAuthUserId(ctx);
+        const userId = await getVerifiedUserId(ctx);
         if (!userId) throw new Error("Not authenticated");
         const bulb = await ctx.db.get(args.id);
         if (!bulb) throw new Error("Not found");
@@ -101,7 +101,7 @@ export const updateStatus = mutation({
         status: bulbStatuses,
     },
     handler: async (ctx, args) => {
-        const userId = await getAuthUserId(ctx);
+        const userId = await getVerifiedUserId(ctx);
         if (!userId) throw new Error("Not authenticated");
         const bulb = await ctx.db.get(args.id);
         if (!bulb) throw new Error("Not found");
@@ -133,7 +133,7 @@ export const updateStatus = mutation({
 export const remove = mutation({
     args: { id: v.id("bulbs") },
     handler: async (ctx, args) => {
-        const userId = await getAuthUserId(ctx);
+        const userId = await getVerifiedUserId(ctx);
         if (!userId) throw new Error("Not authenticated");
         const bulb = await ctx.db.get(args.id);
         if (!bulb) throw new Error("Not found");
@@ -168,7 +168,7 @@ export const bulkUpdateStatus = mutation({
         status: bulbStatuses,
     },
     handler: async (ctx, args) => {
-        const userId = await getAuthUserId(ctx);
+        const userId = await getVerifiedUserId(ctx);
         if (!userId) throw new Error("Not authenticated");
 
         for (const id of args.ids) {

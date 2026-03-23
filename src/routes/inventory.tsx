@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useState } from "react";
+import { AuthGuard } from "#/components/AuthGuard";
 import { Button } from "#/components/ui/button";
 import { Input } from "#/components/ui/input";
 import { Label } from "#/components/ui/label";
@@ -12,6 +13,7 @@ import {
   CardHeader,
   CardTitle,
 } from "#/components/ui/card";
+import { Skeleton } from "#/components/ui/skeleton";
 import {
   Dialog,
   DialogContent,
@@ -35,6 +37,7 @@ import {
   Pencil,
 } from "lucide-react";
 import { toast } from "sonner";
+import { ConfirmDialog } from "#/components/ConfirmDialog";
 import {
   SOCKET_TYPE_OPTIONS,
   COLOUR_TEMP_LABELS,
@@ -46,13 +49,48 @@ export const Route = createFileRoute("/inventory")({
 });
 
 function InventoryPage() {
+  return (
+    <AuthGuard>
+      <InventoryContent />
+    </AuthGuard>
+  );
+}
+
+function InventoryContent() {
   const spares = useQuery(api.inventory.list);
   const [createOpen, setCreateOpen] = useState(false);
 
   if (spares === undefined) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      <div className="mx-auto max-w-6xl px-4 py-8">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <Skeleton className="h-9 w-56 mb-2" />
+            <Skeleton className="h-5 w-40" />
+          </div>
+          <Skeleton className="h-10 w-32" />
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Card key={i}>
+              <CardHeader className="pb-3">
+                <Skeleton className="h-5 w-32 mb-1" />
+                <Skeleton className="h-5 w-20" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-4 w-28 mb-3" />
+                <div className="flex items-center justify-center gap-3 bg-muted rounded-lg p-3">
+                  <Skeleton className="h-8 w-8" />
+                  <div className="text-center min-w-[60px]">
+                    <Skeleton className="mx-auto h-8 w-8 mb-1" />
+                    <Skeleton className="mx-auto h-3 w-12" />
+                  </div>
+                  <Skeleton className="h-8 w-8" />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
     );
   }
@@ -146,19 +184,24 @@ function SpareCard({ spare }: { spare: any }) {
                 />
               </DialogContent>
             </Dialog>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 text-destructive hover:text-destructive"
-              onClick={async () => {
-                if (confirm("Remove this spare bulb entry?")) {
-                  await removeSpare({ id: spare._id });
-                  toast.success("Spare removed");
-                }
+            <ConfirmDialog
+              trigger={
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-destructive hover:text-destructive"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              }
+              title="Remove spare bulb entry?"
+              description="This will permanently remove this spare bulb entry from your inventory. This action cannot be undone."
+              actionLabel="Remove"
+              onConfirm={async () => {
+                await removeSpare({ id: spare._id });
+                toast.success("Spare removed");
               }}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
+            />
           </div>
         </div>
       </CardHeader>

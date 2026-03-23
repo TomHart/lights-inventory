@@ -3,6 +3,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
 import { useState } from "react";
+import { AuthGuard } from "#/components/AuthGuard";
 import { Button } from "#/components/ui/button";
 import { Input } from "#/components/ui/input";
 import { Label } from "#/components/ui/label";
@@ -14,6 +15,7 @@ import {
   CardHeader,
   CardTitle,
 } from "#/components/ui/card";
+import { Skeleton } from "#/components/ui/skeleton";
 import {
   Dialog,
   DialogContent,
@@ -42,6 +44,7 @@ import {
   Wrench,
 } from "lucide-react";
 import { toast } from "sonner";
+import { ConfirmDialog } from "#/components/ConfirmDialog";
 import {
   BULB_STATUS_LABELS,
   BULB_STATUS_COLORS,
@@ -55,6 +58,14 @@ export const Route = createFileRoute("/fixture/$fixtureId")({
 });
 
 function FixtureDetailPage() {
+  return (
+    <AuthGuard>
+      <FixtureDetailContent />
+    </AuthGuard>
+  );
+}
+
+function FixtureDetailContent() {
   const { fixtureId } = Route.useParams();
   const fixture = useQuery(api.fixtures.get, {
     id: fixtureId as Id<"fixtures">,
@@ -70,8 +81,56 @@ function FixtureDetailPage() {
 
   if (fixture === undefined || bulbs === undefined) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      <div className="mx-auto max-w-6xl px-4 py-8">
+        <div className="mb-6">
+          <Skeleton className="h-4 w-32 mb-4" />
+          <div className="flex items-center justify-between">
+            <div>
+              <Skeleton className="h-9 w-56 mb-2" />
+              <div className="flex gap-2 mt-1">
+                <Skeleton className="h-5 w-16" />
+                <Skeleton className="h-5 w-16" />
+                <Skeleton className="h-5 w-40" />
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Skeleton className="h-10 w-40" />
+              <Skeleton className="h-10 w-28" />
+            </div>
+          </div>
+        </div>
+        <Skeleton className="h-7 w-28 mb-4" />
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-8">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Card key={i}>
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <Skeleton className="h-5 w-32 mb-1" />
+                    <Skeleton className="h-4 w-24" />
+                  </div>
+                  <Skeleton className="h-5 w-16 rounded-full" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2 mb-4">
+                  <Skeleton className="h-4 w-40" />
+                  <Skeleton className="h-4 w-28" />
+                </div>
+                <div className="flex gap-1 mb-3">
+                  <Skeleton className="h-8 flex-1" />
+                  <Skeleton className="h-8 flex-1" />
+                  <Skeleton className="h-8 flex-1" />
+                </div>
+                <div className="flex gap-1">
+                  <Skeleton className="h-8 flex-1" />
+                  <Skeleton className="h-8 w-8" />
+                  <Skeleton className="h-8 w-8" />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
     );
   }
@@ -337,19 +396,24 @@ function BulbCard({
               />
             </DialogContent>
           </Dialog>
-          <Button
-            variant="outline"
-            size="sm"
-            className="text-destructive hover:text-destructive"
-            onClick={async () => {
-              if (confirm("Delete this bulb?")) {
-                await removeBulb({ id: bulb._id });
-                toast.success("Bulb deleted");
-              }
+          <ConfirmDialog
+            trigger={
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-destructive hover:text-destructive"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </Button>
+            }
+            title="Delete bulb?"
+            description="This will permanently remove this bulb from the fixture. This action cannot be undone."
+            actionLabel="Delete"
+            onConfirm={async () => {
+              await removeBulb({ id: bulb._id });
+              toast.success("Bulb deleted");
             }}
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-          </Button>
+          />
         </div>
       </CardContent>
     </Card>

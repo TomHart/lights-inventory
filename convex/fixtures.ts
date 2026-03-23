@@ -1,4 +1,4 @@
-import { getAuthUserId } from "@convex-dev/auth/server";
+import { getVerifiedUserId } from "./auth.helpers";
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { fixtureLocations, socketTypes } from "./schema";
@@ -6,7 +6,7 @@ import { fixtureLocations, socketTypes } from "./schema";
 export const listByRoom = query({
     args: { roomId: v.id("rooms") },
     handler: async (ctx, args) => {
-        const userId = await getAuthUserId(ctx);
+        const userId = await getVerifiedUserId(ctx);
         if (!userId) return [];
         const room = await ctx.db.get(args.roomId);
         if (!room) return [];
@@ -39,7 +39,7 @@ export const listByRoom = query({
 export const get = query({
     args: { id: v.id("fixtures") },
     handler: async (ctx, args) => {
-        const userId = await getAuthUserId(ctx);
+        const userId = await getVerifiedUserId(ctx);
         if (!userId) return null;
         const fixture = await ctx.db.get(args.id);
         if (!fixture) return null;
@@ -66,7 +66,7 @@ export const create = mutation({
         notes: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
-        const userId = await getAuthUserId(ctx);
+        const userId = await getVerifiedUserId(ctx);
         if (!userId) throw new Error("Not authenticated");
         const room = await ctx.db.get(args.roomId);
         if (!room) throw new Error("Not found");
@@ -95,7 +95,7 @@ export const update = mutation({
         notes: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
-        const userId = await getAuthUserId(ctx);
+        const userId = await getVerifiedUserId(ctx);
         if (!userId) throw new Error("Not authenticated");
         const fixture = await ctx.db.get(args.id);
         if (!fixture) throw new Error("Not found");
@@ -117,7 +117,7 @@ export const update = mutation({
 export const duplicate = mutation({
     args: { id: v.id("fixtures") },
     handler: async (ctx, args) => {
-        const userId = await getAuthUserId(ctx);
+        const userId = await getVerifiedUserId(ctx);
         if (!userId) throw new Error("Not authenticated");
         const fixture = await ctx.db.get(args.id);
         if (!fixture) throw new Error("Not found");
@@ -166,7 +166,7 @@ export const duplicate = mutation({
 export const remove = mutation({
     args: { id: v.id("fixtures") },
     handler: async (ctx, args) => {
-        const userId = await getAuthUserId(ctx);
+        const userId = await getVerifiedUserId(ctx);
         if (!userId) throw new Error("Not authenticated");
         const fixture = await ctx.db.get(args.id);
         if (!fixture) throw new Error("Not found");

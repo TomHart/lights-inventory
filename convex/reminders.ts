@@ -1,11 +1,11 @@
-import { getAuthUserId } from "@convex-dev/auth/server";
+import { getVerifiedUserId } from "./auth.helpers";
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
 export const listDue = query({
   args: {},
   handler: async (ctx) => {
-    const userId = await getAuthUserId(ctx);
+    const userId = await getVerifiedUserId(ctx);
     if (!userId) return [];
     const now = Date.now();
     const reminders = await ctx.db
@@ -26,7 +26,7 @@ export const create = mutation({
     message: v.string(),
   },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
+    const userId = await getVerifiedUserId(ctx);
     if (!userId) throw new Error("Not authenticated");
 
     // Verify ownership

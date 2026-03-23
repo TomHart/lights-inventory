@@ -1,11 +1,11 @@
-import { getAuthUserId } from "@convex-dev/auth/server";
+import { getVerifiedUserId } from "./auth.helpers";
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
 export const list = query({
     args: {},
     handler: async (ctx) => {
-        const userId = await getAuthUserId(ctx);
+        const userId = await getVerifiedUserId(ctx);
         if (!userId) return [];
         return await ctx.db
             .query("properties")
@@ -17,7 +17,7 @@ export const list = query({
 export const get = query({
     args: { id: v.id("properties") },
     handler: async (ctx, args) => {
-        const userId = await getAuthUserId(ctx);
+        const userId = await getVerifiedUserId(ctx);
         if (!userId) return null;
         const property = await ctx.db.get(args.id);
         if (!property || property.userId !== userId) return null;
@@ -28,7 +28,7 @@ export const get = query({
 export const getWithStats = query({
     args: { id: v.id("properties") },
     handler: async (ctx, args) => {
-        const userId = await getAuthUserId(ctx);
+        const userId = await getVerifiedUserId(ctx);
         if (!userId) return null;
         const property = await ctx.db.get(args.id);
         if (!property || property.userId !== userId) return null;
@@ -74,7 +74,7 @@ export const getWithStats = query({
 export const create = mutation({
     args: { name: v.string() },
     handler: async (ctx, args) => {
-        const userId = await getAuthUserId(ctx);
+        const userId = await getVerifiedUserId(ctx);
         if (!userId) throw new Error("Not authenticated");
         const now = Date.now();
         return await ctx.db.insert("properties", {
@@ -89,7 +89,7 @@ export const create = mutation({
 export const update = mutation({
     args: { id: v.id("properties"), name: v.string() },
     handler: async (ctx, args) => {
-        const userId = await getAuthUserId(ctx);
+        const userId = await getVerifiedUserId(ctx);
         if (!userId) throw new Error("Not authenticated");
         const property = await ctx.db.get(args.id);
         if (!property || property.userId !== userId)
@@ -101,7 +101,7 @@ export const update = mutation({
 export const remove = mutation({
     args: { id: v.id("properties") },
     handler: async (ctx, args) => {
-        const userId = await getAuthUserId(ctx);
+        const userId = await getVerifiedUserId(ctx);
         if (!userId) throw new Error("Not authenticated");
         const property = await ctx.db.get(args.id);
         if (!property || property.userId !== userId)

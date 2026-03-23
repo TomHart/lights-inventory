@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useState } from "react";
+import { AuthGuard } from "#/components/AuthGuard";
 import { Button } from "#/components/ui/button";
 import { Input } from "#/components/ui/input";
 import { Label } from "#/components/ui/label";
@@ -12,6 +13,7 @@ import {
   CardHeader,
   CardTitle,
 } from "#/components/ui/card";
+import { Skeleton } from "#/components/ui/skeleton";
 import {
   Dialog,
   DialogContent,
@@ -29,6 +31,7 @@ import {
   Pencil,
 } from "lucide-react";
 import { toast } from "sonner";
+import { ConfirmDialog } from "#/components/ConfirmDialog";
 
 export const Route = createFileRoute("/properties")({
   component: PropertiesPage,
@@ -36,13 +39,49 @@ export const Route = createFileRoute("/properties")({
 });
 
 function PropertiesPage() {
+  return (
+    <AuthGuard>
+      <PropertiesContent />
+    </AuthGuard>
+  );
+}
+
+function PropertiesContent() {
   const properties = useQuery(api.properties.list);
   const [createOpen, setCreateOpen] = useState(false);
 
   if (properties === undefined) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      <div className="mx-auto max-w-6xl px-4 py-8">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <Skeleton className="h-9 w-36 mb-2" />
+            <Skeleton className="h-5 w-64" />
+          </div>
+          <Skeleton className="h-10 w-36" />
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Card key={i}>
+              <CardHeader className="pb-3">
+                <Skeleton className="h-5 w-40 mb-1" />
+                <Skeleton className="h-4 w-28" />
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-3 gap-2 text-center text-sm mb-4">
+                  {Array.from({ length: 3 }).map((_, j) => (
+                    <div key={j} className="rounded-lg bg-muted p-2">
+                      <Skeleton className="mx-auto h-4 w-4 mb-1" />
+                      <Skeleton className="mx-auto h-5 w-6 mb-1" />
+                      <Skeleton className="mx-auto h-3 w-10" />
+                    </div>
+                  ))}
+                </div>
+                <Skeleton className="h-10 w-full" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
     );
   }
@@ -127,19 +166,24 @@ function PropertyCard({ property }: { property: any }) {
                 />
               </DialogContent>
             </Dialog>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 text-destructive hover:text-destructive"
-              onClick={async () => {
-                if (confirm("Delete this property and all its contents?")) {
-                  await removeProperty({ id: property._id });
-                  toast.success("Property deleted");
-                }
+            <ConfirmDialog
+              trigger={
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-destructive hover:text-destructive"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              }
+              title="Delete property?"
+              description="This will permanently delete this property and all its rooms, fixtures, and bulbs. This action cannot be undone."
+              actionLabel="Delete"
+              onConfirm={async () => {
+                await removeProperty({ id: property._id });
+                toast.success("Property deleted");
               }}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
+            />
           </div>
         </div>
       </CardHeader>

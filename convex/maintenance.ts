@@ -1,11 +1,11 @@
-import { getAuthUserId } from "@convex-dev/auth/server";
+import { getVerifiedUserId } from "./auth.helpers";
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
 export const listByFixture = query({
     args: { fixtureId: v.id("fixtures") },
     handler: async (ctx, args) => {
-        const userId = await getAuthUserId(ctx);
+        const userId = await getVerifiedUserId(ctx);
         if (!userId) return [];
         return await ctx.db
             .query("maintenanceLogs")
@@ -24,7 +24,7 @@ export const create = mutation({
         date: v.number(),
     },
     handler: async (ctx, args) => {
-        const userId = await getAuthUserId(ctx);
+        const userId = await getVerifiedUserId(ctx);
         if (!userId) throw new Error("Not authenticated");
 
         return await ctx.db.insert("maintenanceLogs", {

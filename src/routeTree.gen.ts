@@ -9,15 +9,21 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as VerifyRouteImport } from './routes/verify'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as PropertiesRouteImport } from './routes/properties'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as InventoryRouteImport } from './routes/inventory'
-import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as RoomRoomIdRouteImport } from './routes/room.$roomId'
 import { Route as PropertyPropertyIdRouteImport } from './routes/property.$propertyId'
 import { Route as FixtureFixtureIdRouteImport } from './routes/fixture.$fixtureId'
 
+const VerifyRoute = VerifyRouteImport.update({
+  id: '/verify',
+  path: '/verify',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SearchRoute = SearchRouteImport.update({
   id: '/search',
   path: '/search',
@@ -28,14 +34,14 @@ const PropertiesRoute = PropertiesRouteImport.update({
   path: '/properties',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const InventoryRoute = InventoryRouteImport.update({
   id: '/inventory',
   path: '/inventory',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DashboardRoute = DashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -61,20 +67,22 @@ const FixtureFixtureIdRoute = FixtureFixtureIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/dashboard': typeof DashboardRoute
   '/inventory': typeof InventoryRoute
+  '/login': typeof LoginRoute
   '/properties': typeof PropertiesRoute
   '/search': typeof SearchRoute
+  '/verify': typeof VerifyRoute
   '/fixture/$fixtureId': typeof FixtureFixtureIdRoute
   '/property/$propertyId': typeof PropertyPropertyIdRoute
   '/room/$roomId': typeof RoomRoomIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/dashboard': typeof DashboardRoute
   '/inventory': typeof InventoryRoute
+  '/login': typeof LoginRoute
   '/properties': typeof PropertiesRoute
   '/search': typeof SearchRoute
+  '/verify': typeof VerifyRoute
   '/fixture/$fixtureId': typeof FixtureFixtureIdRoute
   '/property/$propertyId': typeof PropertyPropertyIdRoute
   '/room/$roomId': typeof RoomRoomIdRoute
@@ -82,10 +90,11 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/dashboard': typeof DashboardRoute
   '/inventory': typeof InventoryRoute
+  '/login': typeof LoginRoute
   '/properties': typeof PropertiesRoute
   '/search': typeof SearchRoute
+  '/verify': typeof VerifyRoute
   '/fixture/$fixtureId': typeof FixtureFixtureIdRoute
   '/property/$propertyId': typeof PropertyPropertyIdRoute
   '/room/$roomId': typeof RoomRoomIdRoute
@@ -94,30 +103,33 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/dashboard'
     | '/inventory'
+    | '/login'
     | '/properties'
     | '/search'
+    | '/verify'
     | '/fixture/$fixtureId'
     | '/property/$propertyId'
     | '/room/$roomId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/dashboard'
     | '/inventory'
+    | '/login'
     | '/properties'
     | '/search'
+    | '/verify'
     | '/fixture/$fixtureId'
     | '/property/$propertyId'
     | '/room/$roomId'
   id:
     | '__root__'
     | '/'
-    | '/dashboard'
     | '/inventory'
+    | '/login'
     | '/properties'
     | '/search'
+    | '/verify'
     | '/fixture/$fixtureId'
     | '/property/$propertyId'
     | '/room/$roomId'
@@ -125,10 +137,11 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  DashboardRoute: typeof DashboardRoute
   InventoryRoute: typeof InventoryRoute
+  LoginRoute: typeof LoginRoute
   PropertiesRoute: typeof PropertiesRoute
   SearchRoute: typeof SearchRoute
+  VerifyRoute: typeof VerifyRoute
   FixtureFixtureIdRoute: typeof FixtureFixtureIdRoute
   PropertyPropertyIdRoute: typeof PropertyPropertyIdRoute
   RoomRoomIdRoute: typeof RoomRoomIdRoute
@@ -136,6 +149,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/verify': {
+      id: '/verify'
+      path: '/verify'
+      fullPath: '/verify'
+      preLoaderRoute: typeof VerifyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/search': {
       id: '/search'
       path: '/search'
@@ -150,18 +170,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PropertiesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/inventory': {
       id: '/inventory'
       path: '/inventory'
       fullPath: '/inventory'
       preLoaderRoute: typeof InventoryRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dashboard': {
-      id: '/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -197,10 +217,11 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  DashboardRoute: DashboardRoute,
   InventoryRoute: InventoryRoute,
+  LoginRoute: LoginRoute,
   PropertiesRoute: PropertiesRoute,
   SearchRoute: SearchRoute,
+  VerifyRoute: VerifyRoute,
   FixtureFixtureIdRoute: FixtureFixtureIdRoute,
   PropertyPropertyIdRoute: PropertyPropertyIdRoute,
   RoomRoomIdRoute: RoomRoomIdRoute,

@@ -1,4 +1,4 @@
-import { getAuthUserId } from "@convex-dev/auth/server";
+import { getVerifiedUserId } from "./auth.helpers";
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { roomTypes } from "./schema";
@@ -6,7 +6,7 @@ import { roomTypes } from "./schema";
 export const listByProperty = query({
     args: { propertyId: v.id("properties") },
     handler: async (ctx, args) => {
-        const userId = await getAuthUserId(ctx);
+        const userId = await getVerifiedUserId(ctx);
         if (!userId) return [];
         const property = await ctx.db.get(args.propertyId);
         if (!property || property.userId !== userId) return [];
@@ -53,7 +53,7 @@ export const listByProperty = query({
 export const get = query({
     args: { id: v.id("rooms") },
     handler: async (ctx, args) => {
-        const userId = await getAuthUserId(ctx);
+        const userId = await getVerifiedUserId(ctx);
         if (!userId) return null;
         const room = await ctx.db.get(args.id);
         if (!room) return null;
@@ -70,7 +70,7 @@ export const create = mutation({
         roomType: roomTypes,
     },
     handler: async (ctx, args) => {
-        const userId = await getAuthUserId(ctx);
+        const userId = await getVerifiedUserId(ctx);
         if (!userId) throw new Error("Not authenticated");
         const property = await ctx.db.get(args.propertyId);
         if (!property || property.userId !== userId)
@@ -93,7 +93,7 @@ export const update = mutation({
         roomType: roomTypes,
     },
     handler: async (ctx, args) => {
-        const userId = await getAuthUserId(ctx);
+        const userId = await getVerifiedUserId(ctx);
         if (!userId) throw new Error("Not authenticated");
         const room = await ctx.db.get(args.id);
         if (!room) throw new Error("Not found");
@@ -111,7 +111,7 @@ export const update = mutation({
 export const remove = mutation({
     args: { id: v.id("rooms") },
     handler: async (ctx, args) => {
-        const userId = await getAuthUserId(ctx);
+        const userId = await getVerifiedUserId(ctx);
         if (!userId) throw new Error("Not authenticated");
         const room = await ctx.db.get(args.id);
         if (!room) throw new Error("Not found");

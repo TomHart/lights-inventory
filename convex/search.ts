@@ -1,4 +1,4 @@
-import { getAuthUserId } from "@convex-dev/auth/server";
+import { getVerifiedUserId } from "./auth.helpers";
 import { query } from "./_generated/server";
 import { v } from "convex/values";
 
@@ -12,7 +12,7 @@ export const searchAll = query({
         colourTemperature: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
-        const userId = await getAuthUserId(ctx);
+        const userId = await getVerifiedUserId(ctx);
         if (!userId) return [];
 
         const properties = await ctx.db
@@ -117,7 +117,7 @@ export const searchAll = query({
 export const dashboardStats = query({
     args: {},
     handler: async (ctx) => {
-        const userId = await getAuthUserId(ctx);
+        const userId = await getVerifiedUserId(ctx);
         if (!userId)
             return {
                 properties: 0,
