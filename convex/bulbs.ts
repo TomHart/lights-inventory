@@ -130,6 +130,37 @@ export const updateStatus = mutation({
     },
 });
 
+export const duplicate = mutation({
+    args: { id: v.id("bulbs") },
+    handler: async (ctx, args) => {
+        const userId = await getVerifiedUserId(ctx);
+        if (!userId) throw new Error("Not authenticated");
+        const bulb = await ctx.db.get(args.id);
+        if (!bulb) throw new Error("Not found");
+        const fixture = await ctx.db.get(bulb.fixtureId);
+        if (!fixture) throw new Error("Not found");
+        const room = await ctx.db.get(fixture.roomId);
+        if (!room) throw new Error("Not found");
+        const property = await ctx.db.get(room.propertyId);
+        if (!property || property.userId !== userId)
+            throw new Error("Not found");
+
+        const now = Date.now();
+        return await ctx.db.insert("bulbs", {
+            fixtureId: bulb.fixtureId,
+            installDate: bulb.installDate,
+            status: bulb.status,
+            wattage: bulb.wattage,
+            colourTemperature: bulb.colourTemperature,
+            notes: bulb.notes,
+            productName: bulb.productName,
+            productUrl: bulb.productUrl,
+            createdAt: now,
+            updatedAt: now,
+        });
+    },
+});
+
 export const remove = mutation({
     args: { id: v.id("bulbs") },
     handler: async (ctx, args) => {

@@ -43,6 +43,7 @@ import {
   Clock,
   Bell,
   Wrench,
+  Copy,
 } from "lucide-react";
 import { toast } from "sonner";
 import { ConfirmDialog } from "#/components/ConfirmDialog";
@@ -278,6 +279,7 @@ function BulbCard({
   fixtureId: Id<"fixtures">;
 }) {
   const updateStatus = useMutation(api.bulbs.updateStatus);
+  const duplicateBulb = useMutation(api.bulbs.duplicate);
   const removeBulb = useMutation(api.bulbs.remove);
   const [editOpen, setEditOpen] = useState(false);
   const [reminderOpen, setReminderOpen] = useState(false);
@@ -373,6 +375,17 @@ function BulbCard({
               />
             </DialogContent>
           </Dialog>
+          <Button
+            variant="outline"
+            size="sm"
+            title="Duplicate bulb"
+            onClick={async () => {
+              await duplicateBulb({ id: bulb._id });
+              toast.success("Bulb duplicated");
+            }}
+          >
+            <Copy className="h-3.5 w-3.5" />
+          </Button>
           <Dialog open={editOpen} onOpenChange={setEditOpen}>
             <DialogTrigger asChild>
               <Button variant="outline" size="sm">
