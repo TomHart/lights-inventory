@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery, useMutation } from "convex/react";
+import { useQuery, useMutation, useConvex } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { AuthGuard } from "#/components/AuthGuard";
 import {
@@ -19,10 +19,23 @@ import {
     Package,
     Zap,
     Check,
+    Download,
+    Upload,
+    HardDriveDownload,
+    HardDriveUpload,
 } from "lucide-react";
 import { Button } from "#/components/ui/button";
 import { FIXTURE_LOCATION_LABELS } from "#/lib/constants";
 import { toast } from "sonner";
+import { useRef, useState } from "react";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "#/components/ui/dialog";
 
 export const Route = createFileRoute("/")({
     component: DashboardPage,
@@ -37,10 +50,143 @@ function DashboardPage() {
     );
 }
 
+// ── Import preview types ────────────────────────────────────────────────
+
+interface ImportPreview {
+    properties: number;
+    rooms: number;
+    fixtures: number;
+    bulbs: number;
+    spareBulbs: number;
+    rawJson: string;
+}
+
+function countImportData(data: any): Omit<ImportPreview, "rawJson"> {
+    let properties = 0;
+    let rooms = 0;
+    let fixtures = 0;
+    let bulbs = 0;
+    let spareBulbs = 0;
+
+    if (Array.isArray(data.properties)) {
+        properties = data.properties.length;
+        for (const prop of data.properties) {
+            if (Array.isArray(prop.rooms)) {
+                rooms += prop.rooms.length;
+                for (const room of prop.rooms) {
+                    if (Array.isArray(room.fixtures)) {
+                        fixtures += room.fixtures.length;
+                        for (const fixture of room.fixtures) {
+                            if (Array.isArray(fixture.bulbs)) {
+                                bulbs += fixture.bulbs.length;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if (Array.isArray(data.spareBulbs)) {
+        spareBulbs = data.spareBulbs.length;
+    }
+
+    return { properties, rooms, fixtures, bulbs, spareBulbs };
+}
+
+// ── Dashboard ───────────────────────────────────────────────────────────
+
 function DashboardContent() {
     const stats = useQuery(api.search.dashboardStats);
     const dueReminders = useQuery(api.reminders.listDue);
     const dismissReminder = useMutation(api.reminders.dismiss);
+    const importAll = useMutation(api.dataTransfer.importAll);
+    const convex = useConvex();
+
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [exporting, setExporting] = useState(false);
+    const [importPreview, setImportPreview] = useState<ImportPreview | null>(
+        null,
+    );
+    const [importing, setImporting] = useState(false);
+
+    // ── Export handler ──────────────────────────────────────────────
+
+    const handleExport = async () => {
+        setExporting(true);
+        try {
+            const data = await convex.query(api.dataTransfer.exportAll, {});
+            if (!data) {
+                toast.error("No data to export");
+                return;
+            }
+            const json = JSON.stringify(data, null, 2);
+            const blob = new Blob([json], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            const date = new Date().toISOString().slice(0, 10);
+            a.download = `lights-inventory-${date}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            toast.success("Inventory exported successfully");
+        } catch (err: any) {
+            toast.error(err?.message ?? "Export failed");
+        } finally {
+            setExporting(false);
+        }
+    };
+
+    // ── Import handlers ─────────────────────────────────────────────
+
+    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const text = event.target?.result as string;
+            try {
+                const parsed = JSON.parse(text);
+                if (!parsed.version || parsed.version !== 1) {
+                    toast.error(
+                        "Unsupported file format. Please use a file exported from this application.",
+                    );
+                    return;
+                }
+                const counts = countImportData(parsed);
+                setImportPreview({ ...counts, rawJson: text });
+            } catch {
+                toast.error(
+                    "Invalid JSON file. Please select a valid export file.",
+                );
+            }
+        };
+        reader.readAsText(file);
+
+        // Reset file input so the same file can be re-selected
+        e.target.value = "";
+    };
+
+    const handleImportConfirm = async () => {
+        if (!importPreview) return;
+        setImporting(true);
+        try {
+            const result = await importAll({ data: importPreview.rawJson });
+            toast.success(
+                `Imported ${result.importedProperties} properties, ${result.importedRooms} rooms, ${result.importedFixtures} fixtures, ${result.importedBulbs} bulbs, and ${result.importedSpares} spare bulbs`,
+            );
+            setImportPreview(null);
+        } catch (err: any) {
+            toast.error(err?.message ?? "Import failed");
+        } finally {
+            setImporting(false);
+        }
+    };
+
+    // ── Loading state ───────────────────────────────────────────────
 
     if (stats === undefined) {
         return (
@@ -96,6 +242,8 @@ function DashboardContent() {
             </div>
         );
     }
+
+    // ── Rendered dashboard ──────────────────────────────────────────
 
     return (
         <div className="mx-auto max-w-6xl px-4 py-8">
@@ -274,9 +422,120 @@ function DashboardContent() {
                     </CardContent>
                 </Card>
             </div>
+
+            {/* Data Management */}
+            <div className="mt-4">
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-lg">
+                            <HardDriveDownload className="h-5 w-5" />
+                            Data Management
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <p className="text-sm text-muted-foreground mb-4">
+                            Export your entire inventory as a JSON file for backup, or import
+                            data from a previously exported file.
+                        </p>
+                        <div className="flex flex-col sm:flex-row gap-2">
+                            <Button
+                                variant="outline"
+                                className="gap-2"
+                                onClick={handleExport}
+                                disabled={exporting}
+                            >
+                                <Download className="h-4 w-4" />
+                                {exporting ? "Exporting..." : "Export Data"}
+                            </Button>
+                            <Button
+                                variant="outline"
+                                className="gap-2"
+                                onClick={() => fileInputRef.current?.click()}
+                            >
+                                <Upload className="h-4 w-4" />
+                                Import Data
+                            </Button>
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept=".json,application/json"
+                                className="hidden"
+                                onChange={handleFileSelect}
+                            />
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+
+            {/* Import Confirmation Dialog */}
+            <Dialog
+                open={importPreview !== null}
+                onOpenChange={(open) => {
+                    if (!open) setImportPreview(null);
+                }}
+            >
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Confirm Import</DialogTitle>
+                        <DialogDescription>
+                            The following data will be added to your inventory.
+                            Existing data will not be modified or removed.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    {importPreview && (
+                        <div className="grid grid-cols-2 gap-3 py-2">
+                            <SummaryItem
+                                icon={<Building2 className="h-4 w-4 text-blue-500" />}
+                                label="Properties"
+                                value={importPreview.properties}
+                            />
+                            <SummaryItem
+                                icon={<DoorOpen className="h-4 w-4 text-indigo-500" />}
+                                label="Rooms"
+                                value={importPreview.rooms}
+                            />
+                            <SummaryItem
+                                icon={<Zap className="h-4 w-4 text-yellow-500" />}
+                                label="Fixtures"
+                                value={importPreview.fixtures}
+                            />
+                            <SummaryItem
+                                icon={<Lightbulb className="h-4 w-4 text-amber-500" />}
+                                label="Bulbs"
+                                value={importPreview.bulbs}
+                            />
+                            <SummaryItem
+                                icon={<Package className="h-4 w-4 text-emerald-500" />}
+                                label="Spare Bulbs"
+                                value={importPreview.spareBulbs}
+                            />
+                        </div>
+                    )}
+
+                    <DialogFooter>
+                        <Button
+                            variant="outline"
+                            onClick={() => setImportPreview(null)}
+                            disabled={importing}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            onClick={handleImportConfirm}
+                            disabled={importing}
+                        >
+                            <HardDriveUpload className="h-4 w-4 mr-2" />
+                            {importing ? "Importing..." : "Import"}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
+
+// ── Shared components ───────────────────────────────────────────────────
 
 function StatCard({
                       icon,
@@ -299,5 +558,25 @@ function StatCard({
                 </div>
             </CardContent>
         </Card>
+    );
+}
+
+function SummaryItem({
+    icon,
+    label,
+    value,
+}: {
+    icon: React.ReactNode;
+    label: string;
+    value: number;
+}) {
+    return (
+        <div className="flex items-center gap-2 rounded-md border p-3">
+            {icon}
+            <div>
+                <p className="text-xs text-muted-foreground">{label}</p>
+                <p className="text-lg font-semibold">{value}</p>
+            </div>
+        </div>
     );
 }
