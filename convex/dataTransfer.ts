@@ -2,6 +2,7 @@ import { getVerifiedUserId } from "./auth.helpers";
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 import { enforceRateLimit } from "./rateLimit";
+import { normalizeOptionalHttpUrl } from "./validation";
 
 const MAX_IMPORT_BYTES = 1_000_000;
 const MAX_IMPORT_PROPERTIES = 200;
@@ -379,7 +380,7 @@ export const importAll = mutation({
                                             productName:
                                                 bulb.productName || undefined,
                                             productUrl:
-                                                bulb.productUrl || undefined,
+                                                normalizeOptionalHttpUrl(bulb.productUrl),
                                             createdAt: now,
                                             updatedAt: now,
                                         });
@@ -428,7 +429,7 @@ export const importAll = mutation({
                     colourTemperature: spare.colourTemperature,
                     quantity: spare.quantity,
                     productName: spare.productName || undefined,
-                    productUrl: spare.productUrl || undefined,
+                    productUrl: normalizeOptionalHttpUrl(spare.productUrl),
                     notes: spare.notes || undefined,
                     createdAt: now,
                     updatedAt: now,

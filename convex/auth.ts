@@ -17,6 +17,10 @@ export const { auth, signIn, signOut, store } = convexAuth({
         }) {
           const apiKey = process.env.MAILGUN_SECRET;
           if (!apiKey) {
+            if (process.env.NODE_ENV === "production") {
+              throw new Error("MAILGUN_SECRET is required in production.");
+            }
+
             // Development fallback: log the code to the Convex dashboard
             console.log(
               `[DEV ONLY] Verification code for ${email}: ${token}`,
