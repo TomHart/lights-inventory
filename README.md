@@ -44,6 +44,13 @@ If you prefer not to use Tailwind CSS:
 - Set the `VITE_CONVEX_URL` and `CONVEX_DEPLOYMENT` environment variables in your `.env.local`. (Or run `npx -y convex init` to set them automatically.)
 - Run `npx -y convex dev` to start the Convex server.
 
+## reCAPTCHA Enterprise
+
+This app uses Google reCAPTCHA Enterprise for login/signup protection.
+
+- On the frontend deployment, set `VITE_RECAPTCHA_SITE_KEY` to your Enterprise site key.
+- On Convex, set `RECAPTCHA_PROJECT_ID`, `RECAPTCHA_API_KEY`, and `RECAPTCHA_SITE_KEY`.
+
 
 ## Shadcn
 
