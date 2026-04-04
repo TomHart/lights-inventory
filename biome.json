@@ -1,0 +1,30 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.4.10/schema.json",
+  "files": {
+    "ignoreUnknown": true,
+    "includes": [
+      "src/**/*.ts",
+      "src/**/*.tsx",
+      "convex/**/*.ts",
+      "vite.config.ts",
+      "vitest.config.ts",
+      "!src/routeTree.gen.ts",
+      "!convex/_generated",
+      "!.output",
+      "!dist",
+      "!dist-ssr"
+    ]
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "a11y": {
+        "useButtonType": "warn"
+      },
+      "suspicious": {
+        "noArrayIndexKey": "warn"
+      }
+    }
+  }
+}
