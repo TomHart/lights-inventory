@@ -22,6 +22,7 @@ import type * as recaptcha from "../recaptcha.js";
 import type * as reminders from "../reminders.js";
 import type * as rooms from "../rooms.js";
 import type * as search from "../search.js";
+import type * as validation from "../validation.js";
 
 import type {
   ApiFromModules,
@@ -44,6 +45,7 @@ declare const fullApi: ApiFromModules<{
   reminders: typeof reminders;
   rooms: typeof rooms;
   search: typeof search;
+  validation: typeof validation;
 }>;
 
 /**
