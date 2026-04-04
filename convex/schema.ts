@@ -146,4 +146,13 @@ export default defineSchema({
         createdAt: v.number(),
         updatedAt: v.number(),
     }).index("by_userId", ["userId"]),
+
+    rateLimits: defineTable({
+        key: v.string(),
+        count: v.number(),
+        windowStart: v.number(),
+        updatedAt: v.number(),
+    })
+        .index("by_key", ["key"])
+        .index("by_updatedAt", ["updatedAt"]),
 });

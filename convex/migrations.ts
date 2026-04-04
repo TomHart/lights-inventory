@@ -1,4 +1,5 @@
 import { mutation } from "./_generated/server";
+import { getVerifiedUserId } from "./auth.helpers";
 
 /**
  * One-time migration: backfill socketType and features on bulbs,
@@ -13,25 +14,51 @@ import { mutation } from "./_generated/server";
 export const backfillSocketTypeAndFeatures = mutation({
     args: {},
     handler: async (ctx) => {
-        // 1. Backfill bulbs
-        const bulbs = await ctx.db.query("bulbs").collect();
-        let bulbsUpdated = 0;
-        for (const bulb of bulbs) {
-            if (bulb.socketType && bulb.features) continue;
+        const userId = await getVerifiedUserId(ctx);
+        if (!userId) throw new Error("Not authenticated");
 
-            // Try to copy from parent fixture
-            const fixture = await ctx.db.get(bulb.fixtureId);
-            const socketType = bulb.socketType || (fixture as any)?.socketType || "E26";
-            const features = bulb.features || (fixture as any)?.features || [];
+        const properties = await ctx.db
+            .query("properties")
+            .withIndex("by_userId", (q) => q.eq("userId", userId))
+            .collect();
 
-            await ctx.db.patch(bulb._id, { socketType, features });
-            bulbsUpdated++;
+        const userFixtures = [] as Array<any>;
+        for (const property of properties) {
+            const rooms = await ctx.db
+                .query("rooms")
+                .withIndex("by_propertyId", (q) => q.eq("propertyId", property._id))
+                .collect();
+            for (const room of rooms) {
+                const fixtures = await ctx.db
+                    .query("fixtures")
+                    .withIndex("by_roomId", (q) => q.eq("roomId", room._id))
+                    .collect();
+                userFixtures.push(...fixtures);
+            }
         }
 
-        // 2. Strip socketType/features from fixtures
-        const fixtures = await ctx.db.query("fixtures").collect();
+        // 1. Backfill bulbs for the current user's fixtures
+        let bulbsUpdated = 0;
+        for (const fixture of userFixtures) {
+            const bulbs = await ctx.db
+                .query("bulbs")
+                .withIndex("by_fixtureId", (q) => q.eq("fixtureId", fixture._id))
+                .collect();
+            for (const bulb of bulbs) {
+                if (bulb.socketType && bulb.features) continue;
+
+                const socketType =
+                    bulb.socketType || (fixture as any)?.socketType || "E26";
+                const features = bulb.features || (fixture as any)?.features || [];
+
+                await ctx.db.patch(bulb._id, { socketType, features });
+                bulbsUpdated++;
+            }
+        }
+
+        // 2. Strip socketType/features from the current user's fixtures
         let fixturesUpdated = 0;
-        for (const fixture of fixtures) {
+        for (const fixture of userFixtures) {
             if ((fixture as any).socketType !== undefined || (fixture as any).features !== undefined) {
                 await ctx.db.patch(fixture._id, {
                     socketType: undefined,

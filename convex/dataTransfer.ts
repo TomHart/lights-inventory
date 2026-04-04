@@ -1,6 +1,14 @@
 import { getVerifiedUserId } from "./auth.helpers";
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { enforceRateLimit } from "./rateLimit";
+
+const MAX_IMPORT_BYTES = 1_000_000;
+const MAX_IMPORT_PROPERTIES = 200;
+const MAX_IMPORT_ROOMS = 5_000;
+const MAX_IMPORT_FIXTURES = 20_000;
+const MAX_IMPORT_BULBS = 50_000;
+const MAX_IMPORT_SPARES = 5_000;
 
 /**
  * Export all inventory data for the current user as a hierarchical JSON structure.
@@ -154,6 +162,42 @@ const VALID_SOCKET_TYPES = new Set([
 const VALID_STATUSES = new Set(["working", "flickering", "dead"]);
 const VALID_COLOUR_TEMPS = new Set(["warm", "cool", "daylight"]);
 
+function countImportEntities(parsed: any): {
+    properties: number;
+    rooms: number;
+    fixtures: number;
+    bulbs: number;
+    spareBulbs: number;
+} {
+    const properties = Array.isArray(parsed?.properties) ? parsed.properties : [];
+    const spareBulbs = Array.isArray(parsed?.spareBulbs) ? parsed.spareBulbs : [];
+
+    let rooms = 0;
+    let fixtures = 0;
+    let bulbs = 0;
+
+    for (const property of properties) {
+        const propertyRooms = Array.isArray(property?.rooms) ? property.rooms : [];
+        rooms += propertyRooms.length;
+        for (const room of propertyRooms) {
+            const roomFixtures = Array.isArray(room?.fixtures) ? room.fixtures : [];
+            fixtures += roomFixtures.length;
+            for (const fixture of roomFixtures) {
+                const fixtureBulbs = Array.isArray(fixture?.bulbs) ? fixture.bulbs : [];
+                bulbs += fixtureBulbs.length;
+            }
+        }
+    }
+
+    return {
+        properties: properties.length,
+        rooms,
+        fixtures,
+        bulbs,
+        spareBulbs: spareBulbs.length,
+    };
+}
+
 /**
  * Import inventory data from a JSON string (produced by exportAll).
  * The import is additive — existing data is not deleted or modified.
@@ -167,6 +211,17 @@ export const importAll = mutation({
         const userId = await getVerifiedUserId(ctx);
         if (!userId) throw new Error("Not authenticated");
 
+        await enforceRateLimit(ctx, {
+            key: `importAll:${userId}`,
+            limit: 5,
+            windowMs: 60 * 60 * 1000,
+            errorMessage: "Too many imports. Please wait and try again later.",
+        });
+
+        if (args.data.length > MAX_IMPORT_BYTES) {
+            throw new Error("Import file is too large");
+        }
+
         let parsed: any;
         try {
             parsed = JSON.parse(args.data);
@@ -178,6 +233,23 @@ export const importAll = mutation({
             throw new Error(
                 "Unsupported export format. Expected version 1.",
             );
+        }
+
+        const counts = countImportEntities(parsed);
+        if (counts.properties > MAX_IMPORT_PROPERTIES) {
+            throw new Error("Import exceeds property limit");
+        }
+        if (counts.rooms > MAX_IMPORT_ROOMS) {
+            throw new Error("Import exceeds room limit");
+        }
+        if (counts.fixtures > MAX_IMPORT_FIXTURES) {
+            throw new Error("Import exceeds fixture limit");
+        }
+        if (counts.bulbs > MAX_IMPORT_BULBS) {
+            throw new Error("Import exceeds bulb limit");
+        }
+        if (counts.spareBulbs > MAX_IMPORT_SPARES) {
+            throw new Error("Import exceeds spare bulb limit");
         }
 
         const now = Date.now();

@@ -17,6 +17,7 @@ import type * as inventory from "../inventory.js";
 import type * as maintenance from "../maintenance.js";
 import type * as migrations from "../migrations.js";
 import type * as properties from "../properties.js";
+import type * as rateLimit from "../rateLimit.js";
 import type * as recaptcha from "../recaptcha.js";
 import type * as reminders from "../reminders.js";
 import type * as rooms from "../rooms.js";
@@ -38,6 +39,7 @@ declare const fullApi: ApiFromModules<{
   maintenance: typeof maintenance;
   migrations: typeof migrations;
   properties: typeof properties;
+  rateLimit: typeof rateLimit;
   recaptcha: typeof recaptcha;
   reminders: typeof reminders;
   rooms: typeof rooms;

@@ -18,6 +18,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "#/components/ui/tabs";
 import { Lightbulb } from "lucide-react";
 
 const PENDING_VERIFICATION_KEY = "__lightsInventoryPendingVerification";
+const RECAPTCHA_FINGERPRINT_KEY = "__lightsInventoryRecaptchaFingerprint";
 const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY as
   | string
   | undefined;
@@ -40,6 +41,19 @@ function ensureRecaptchaLoaded(): Promise<void> {
     document.head.appendChild(script);
   });
   return recaptchaReady;
+}
+
+function getRecaptchaFingerprint(): string {
+  const existing = window.localStorage.getItem(RECAPTCHA_FINGERPRINT_KEY);
+  if (existing) return existing;
+
+  const bytes = new Uint8Array(16);
+  window.crypto.getRandomValues(bytes);
+  const fingerprint = Array.from(bytes)
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+  window.localStorage.setItem(RECAPTCHA_FINGERPRINT_KEY, fingerprint);
+  return fingerprint;
 }
 
 export const Route = createFileRoute("/login")({
@@ -168,7 +182,11 @@ function AuthForm({
       // --- reCAPTCHA verification ---
       const recaptchaToken = await getRecaptchaToken(flow);
       if (recaptchaToken) {
-        await verifyRecaptcha({ token: recaptchaToken });
+        await verifyRecaptcha({
+          token: recaptchaToken,
+          identifier: email.trim().toLowerCase() || getRecaptchaFingerprint(),
+          action: flow,
+        });
       }
 
       const result = await signIn("password", { email, password, flow });

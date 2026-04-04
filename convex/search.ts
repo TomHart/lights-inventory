@@ -10,10 +10,12 @@ export const searchAll = query({
         isSmart: v.optional(v.boolean()),
         status: v.optional(v.string()),
         colourTemperature: v.optional(v.string()),
+        limit: v.optional(v.number()),
     },
     handler: async (ctx, args) => {
         const userId = await getVerifiedUserId(ctx);
         if (!userId) return [];
+        const limit = Math.min(Math.max(args.limit ?? 500, 1), 2000);
 
         const properties = await ctx.db
             .query("properties")
@@ -105,6 +107,10 @@ export const searchAll = query({
                             productName: bulb.productName,
                             notes: bulb.notes,
                         });
+
+                        if (results.length >= limit) {
+                            return results;
+                        }
                     }
                 }
             }
