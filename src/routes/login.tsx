@@ -21,11 +21,12 @@ const PENDING_VERIFICATION_KEY = "__lightsInventoryPendingVerification";
 const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY as
   | string
   | undefined;
+const RECAPTCHA_ENABLED = import.meta.env.PROD && !!RECAPTCHA_SITE_KEY;
 
 /** Load the reCAPTCHA v3 script once and resolve when ready. */
 let recaptchaReady: Promise<void> | null = null;
 function ensureRecaptchaLoaded(): Promise<void> {
-  if (!RECAPTCHA_SITE_KEY) return Promise.resolve();
+  if (!RECAPTCHA_ENABLED) return Promise.resolve();
   if (recaptchaReady) return recaptchaReady;
   recaptchaReady = new Promise<void>((resolve) => {
     if ((window as any).grecaptcha?.ready) {
@@ -35,8 +36,19 @@ function ensureRecaptchaLoaded(): Promise<void> {
     const script = document.createElement("script");
     script.src = `https://www.google.com/recaptcha/api.js?render=${RECAPTCHA_SITE_KEY}`;
     script.async = true;
-    script.onload = () =>
-      (window as any).grecaptcha.ready(() => resolve());
+    script.defer = true;
+    script.onerror = () => {
+      recaptchaReady = null;
+    };
+    script.onload = () => {
+      const grecaptcha = (window as any).grecaptcha;
+      if (!grecaptcha?.ready) {
+        recaptchaReady = null;
+        return;
+      }
+
+      grecaptcha.ready(() => resolve());
+    };
     document.head.appendChild(script);
   });
   return recaptchaReady;
@@ -127,14 +139,21 @@ function AuthForm({
 
   // Eagerly load the reCAPTCHA script when the form mounts
   useEffect(() => {
-    void ensureRecaptchaLoaded();
+    if (RECAPTCHA_ENABLED) {
+      void ensureRecaptchaLoaded();
+    }
   }, []);
 
   const getRecaptchaToken = useCallback(
     async (action: string): Promise<string> => {
-      if (!RECAPTCHA_SITE_KEY) return "";
+      if (!RECAPTCHA_ENABLED || !RECAPTCHA_SITE_KEY) return "";
       await ensureRecaptchaLoaded();
-      return (window as any).grecaptcha.execute(RECAPTCHA_SITE_KEY, {
+      const grecaptcha = (window as any).grecaptcha;
+      if (!grecaptcha?.execute) {
+        throw new Error("reCAPTCHA is not available.");
+      }
+
+      return grecaptcha.execute(RECAPTCHA_SITE_KEY, {
         action,
       });
     },
@@ -163,19 +182,21 @@ function AuthForm({
       setError("Password must be at least 8 characters.");
       return;
     }
-    if (import.meta.env.PROD && !RECAPTCHA_SITE_KEY) {
+    if (RECAPTCHA_ENABLED && !RECAPTCHA_SITE_KEY) {
       setError("Sign-in is temporarily unavailable. Please contact support.");
       return;
     }
 
     setLoading(true);
     try {
-      // Always verify server-side; production fails closed when reCAPTCHA is not configured.
-      const recaptchaToken = await getRecaptchaToken(flow);
-      await verifyRecaptcha({
-        token: recaptchaToken,
-        action: flow,
-      });
+      // Always verify server-side when reCAPTCHA is enabled; local development can bypass it.
+      if (RECAPTCHA_ENABLED) {
+        const recaptchaToken = await getRecaptchaToken(flow);
+        await verifyRecaptcha({
+          token: recaptchaToken,
+          action: flow,
+        });
+      }
 
       const result = await signIn("password", { email, password, flow });
       // If signingIn is false and no error, verification code was sent
@@ -184,7 +205,12 @@ function AuthForm({
       }
     } catch (err: any) {
       const msg = (err?.message ?? "").toLowerCase();
-      if (msg.includes("recaptcha")) {
+      if (
+        msg.includes("recaptcha") ||
+        msg.includes("site key") ||
+        msg.includes("api.js") ||
+        msg.includes("execute")
+      ) {
         setError("reCAPTCHA verification failed. Please try again.");
       } else if (
         msg.includes("invalidaccountid") ||
