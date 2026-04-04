@@ -7,6 +7,13 @@ const RECAPTCHA_WINDOW_MS = 10 * 60 * 1000;
 const RECAPTCHA_MAX_ATTEMPTS = 20;
 const RECAPTCHA_GLOBAL_MAX_ATTEMPTS = 300;
 
+function logRecaptchaFailure(
+  stage: string,
+  details: Record<string, unknown>,
+) {
+  console.error(`[reCAPTCHA] ${stage}`, details);
+}
+
 export const assertRateLimit = internalMutation({
   args: {
     key: v.string(),
@@ -49,28 +56,68 @@ export const verify = action({
       return { success: true, skipped: true };
     }
 
-    const res = await fetch(
-      "https://www.google.com/recaptcha/api/siteverify",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({ secret, response: token }),
-      },
-    );
+    let res: Response;
+    try {
+      res = await fetch(
+        "https://www.google.com/recaptcha/api/siteverify",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: new URLSearchParams({ secret, response: token }),
+        },
+      );
+    } catch (error) {
+      logRecaptchaFailure("verification request failed", {
+        action: actionBucket,
+        message: error instanceof Error ? error.message : String(error),
+      });
+      throw new Error("reCAPTCHA verification failed. Please try again.");
+    }
+
+    if (!res.ok) {
+      const body = await res.text();
+      logRecaptchaFailure("upstream response was not ok", {
+        action: actionBucket,
+        status: res.status,
+        statusText: res.statusText,
+        body,
+      });
+      throw new Error("reCAPTCHA verification failed. Please try again.");
+    }
 
     const data = await res.json();
 
     if (!data.success) {
+      logRecaptchaFailure("google returned a failed verification", {
+        action: actionBucket,
+        success: data.success,
+        score: data.score,
+        hostname: data.hostname,
+        challenge_ts: data.challenge_ts,
+        errorCodes: data["error-codes"],
+      });
       throw new Error("reCAPTCHA verification failed. Please try again.");
     }
 
     if (action && typeof data.action === "string" && data.action !== action) {
+      logRecaptchaFailure("action mismatch", {
+        requestedAction: action,
+        returnedAction: data.action,
+        score: data.score,
+        hostname: data.hostname,
+      });
       throw new Error("reCAPTCHA action mismatch.");
     }
 
     // For reCAPTCHA v3, reject low scores (likely bots)
     const minScore = Number(process.env.RECAPTCHA_MIN_SCORE ?? "0.5");
     if (typeof data.score === "number" && data.score < minScore) {
+      logRecaptchaFailure("score below minimum", {
+        action: actionBucket,
+        score: data.score,
+        minScore,
+        hostname: data.hostname,
+      });
       throw new Error("reCAPTCHA verification failed. Please try again.");
     }
 

@@ -204,6 +204,7 @@ function AuthForm({
         onVerificationNeeded(email);
       }
     } catch (err: any) {
+      console.error("Authentication failed during sign-up/sign-in:", err);
       const msg = (err?.message ?? "").toLowerCase();
       if (
         msg.includes("recaptcha") ||
