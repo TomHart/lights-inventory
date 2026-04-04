@@ -18,7 +18,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "#/components/ui/tabs";
 import { Lightbulb } from "lucide-react";
 
 const PENDING_VERIFICATION_KEY = "__lightsInventoryPendingVerification";
-const RECAPTCHA_FINGERPRINT_KEY = "__lightsInventoryRecaptchaFingerprint";
 const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY as
   | string
   | undefined;
@@ -41,19 +40,6 @@ function ensureRecaptchaLoaded(): Promise<void> {
     document.head.appendChild(script);
   });
   return recaptchaReady;
-}
-
-function getRecaptchaFingerprint(): string {
-  const existing = window.localStorage.getItem(RECAPTCHA_FINGERPRINT_KEY);
-  if (existing) return existing;
-
-  const bytes = new Uint8Array(16);
-  window.crypto.getRandomValues(bytes);
-  const fingerprint = Array.from(bytes)
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-  window.localStorage.setItem(RECAPTCHA_FINGERPRINT_KEY, fingerprint);
-  return fingerprint;
 }
 
 export const Route = createFileRoute("/login")({
@@ -177,17 +163,19 @@ function AuthForm({
       setError("Password must be at least 8 characters.");
       return;
     }
+    if (import.meta.env.PROD && !RECAPTCHA_SITE_KEY) {
+      setError("Sign-in is temporarily unavailable. Please contact support.");
+      return;
+    }
+
     setLoading(true);
     try {
-      // --- reCAPTCHA verification ---
+      // Always verify server-side; production fails closed when reCAPTCHA is not configured.
       const recaptchaToken = await getRecaptchaToken(flow);
-      if (recaptchaToken) {
-        await verifyRecaptcha({
-          token: recaptchaToken,
-          identifier: email.trim().toLowerCase() || getRecaptchaFingerprint(),
-          action: flow,
-        });
-      }
+      await verifyRecaptcha({
+        token: recaptchaToken,
+        action: flow,
+      });
 
       const result = await signIn("password", { email, password, flow });
       // If signingIn is false and no error, verification code was sent

@@ -2,6 +2,7 @@ import { getVerifiedUserId } from "./auth.helpers";
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { bulbStatuses, colourTemperatures, socketTypes } from "./schema";
+import { normalizeOptionalHttpUrl } from "./validation";
 
 export const listByFixture = query({
     args: { fixtureId: v.id("fixtures") },
@@ -56,7 +57,7 @@ export const create = mutation({
             colourTemperature: args.colourTemperature,
             notes: args.notes,
             productName: args.productName,
-            productUrl: args.productUrl,
+            productUrl: normalizeOptionalHttpUrl(args.productUrl),
             createdAt: now,
             updatedAt: now,
         });
@@ -91,10 +92,14 @@ export const update = mutation({
 
         const { id, ...updates } = args;
         const filteredUpdates: Record<string, unknown> = {};
+        const normalizedProductUrl = normalizeOptionalHttpUrl(updates.productUrl);
         for (const [key, value] of Object.entries(updates)) {
             if (value !== undefined) {
                 filteredUpdates[key] = value;
             }
+        }
+        if (updates.productUrl !== undefined) {
+            filteredUpdates.productUrl = normalizedProductUrl;
         }
         filteredUpdates.updatedAt = Date.now();
         await ctx.db.patch(args.id, filteredUpdates);
@@ -162,7 +167,7 @@ export const duplicate = mutation({
             colourTemperature: bulb.colourTemperature,
             notes: bulb.notes,
             productName: bulb.productName,
-            productUrl: bulb.productUrl,
+            productUrl: normalizeOptionalHttpUrl(bulb.productUrl),
             createdAt: now,
             updatedAt: now,
         });

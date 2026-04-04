@@ -5,15 +5,17 @@ import { enforceRateLimit } from "./rateLimit";
 
 const RECAPTCHA_WINDOW_MS = 10 * 60 * 1000;
 const RECAPTCHA_MAX_ATTEMPTS = 20;
+const RECAPTCHA_GLOBAL_MAX_ATTEMPTS = 300;
 
 export const assertRateLimit = internalMutation({
   args: {
     key: v.string(),
   },
   handler: async (ctx, { key }) => {
+    const limit = key === "global:all" ? RECAPTCHA_GLOBAL_MAX_ATTEMPTS : RECAPTCHA_MAX_ATTEMPTS;
     await enforceRateLimit(ctx, {
       key: `recaptcha:${key}`,
-      limit: RECAPTCHA_MAX_ATTEMPTS,
+      limit,
       windowMs: RECAPTCHA_WINDOW_MS,
       errorMessage: "Too many verification attempts. Please try again later.",
     });
@@ -23,12 +25,20 @@ export const assertRateLimit = internalMutation({
 export const verify = action({
   args: {
     token: v.string(),
-    identifier: v.optional(v.string()),
     action: v.optional(v.string()),
   },
-  handler: async (ctx, { token, identifier, action }) => {
-    const limiterKey = (identifier ?? "anonymous").trim().toLowerCase() || "anonymous";
-    await ctx.runMutation(internal.recaptcha.assertRateLimit, { key: limiterKey });
+  handler: async (ctx, { token, action }) => {
+    const actionBucket =
+      typeof action === "string" && /^[a-zA-Z0-9_-]{1,32}$/.test(action)
+        ? action
+        : "generic";
+
+    await ctx.runMutation(internal.recaptcha.assertRateLimit, {
+      key: `global:${actionBucket}`,
+    });
+    await ctx.runMutation(internal.recaptcha.assertRateLimit, {
+      key: "global:all",
+    });
 
     const secret = process.env.RECAPTCHA_SECRET;
     if (!secret) {

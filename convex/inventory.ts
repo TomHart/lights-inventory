@@ -2,6 +2,7 @@ import { getVerifiedUserId } from "./auth.helpers";
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { colourTemperatures, socketTypes } from "./schema";
+import { normalizeOptionalHttpUrl } from "./validation";
 
 export const list = query({
     args: {},
@@ -36,7 +37,7 @@ export const create = mutation({
             colourTemperature: args.colourTemperature,
             quantity: args.quantity,
             productName: args.productName,
-            productUrl: args.productUrl,
+            productUrl: normalizeOptionalHttpUrl(args.productUrl),
             notes: args.notes,
             createdAt: now,
             updatedAt: now,
@@ -63,10 +64,14 @@ export const update = mutation({
 
         const { id, ...updates } = args;
         const filteredUpdates: Record<string, unknown> = {};
+        const normalizedProductUrl = normalizeOptionalHttpUrl(updates.productUrl);
         for (const [key, value] of Object.entries(updates)) {
             if (value !== undefined) {
                 filteredUpdates[key] = value;
             }
+        }
+        if (updates.productUrl !== undefined) {
+            filteredUpdates.productUrl = normalizedProductUrl;
         }
         filteredUpdates.updatedAt = Date.now();
         await ctx.db.patch(args.id, filteredUpdates);
