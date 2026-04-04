@@ -11,6 +11,8 @@
     "dev": "concurrently -k -n app,convex -c blue,green \"npm:dev:app\" \"npm:dev:convex\"",
     "build": "vite build",
     "preview": "vite preview",
+    "lint": "biome lint .",
+    "lint:fix": "biome lint --write .",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
@@ -41,6 +43,7 @@
     "tw-animate-css": "^1.3.6"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.4.10",
     "@tailwindcss/typography": "^0.5.16",
     "@tanstack/devtools-vite": "0.6.0",
     "@testing-library/dom": "^10.4.1",
