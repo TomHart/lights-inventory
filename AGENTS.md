@@ -43,7 +43,7 @@ Lights Inventory is a full-stack web application for managing light fixtures and
 | Framework | TanStack Start | 1.168.60 |
 | UI Library | React | 19.2.0 |
 | Styling | Tailwind CSS | 4.1.18 |
-| Backend | Convex | 1.32.0 |
+| Backend | Convex | 1.34.0 |
 | Build Tool | Vite | 7.3.1 |
 | Package Manager | pnpm | 10.x |
 | Testing | Vitest | 3.0.5 |

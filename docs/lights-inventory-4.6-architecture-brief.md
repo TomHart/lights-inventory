@@ -226,7 +226,7 @@ sequenceDiagram
 - Vite 7.3.1 (build tool and dev server)
 
 **Data Storage:**
-- Convex Database 1.32.0 (managed PostgreSQL with real-time sync)
+- Convex Database 1.34.0 (managed PostgreSQL with real-time sync)
 - Convex Auth 0.0.91 (authentication service)
 - Convex Query 0.1.0 (React Query integration for data fetching)
 
