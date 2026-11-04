@@ -8,7 +8,6 @@ export default defineConfig({
 			provider: "v8",
 			reporter: ["text", "json", "html"],
 			exclude: ["node_modules/", "convex/_generated/", "src/routeTree.gen.ts"],
-			all: true,
 			thresholds: {
 				lines: 50,
 				functions: 50,
