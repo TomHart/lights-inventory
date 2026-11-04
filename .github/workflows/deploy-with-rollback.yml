@@ -10,18 +10,36 @@ on:
 jobs:
   monitor:
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_run'
+    if: github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'failure'
     timeout-minutes: 15
     steps:
-      - name: Check workflow status
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+      
+      - name: Pull Vercel Environment Information
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+      
+      - name: Rollback to previous deployment
         run: |
-          if [ "${{ github.event.workflow_run.conclusion }}" = "failure" ]; then
-            echo "Workflow failed - triggering rollback notification"
-            echo "::error::Critical workflow ${{ github.event.workflow }} failed on main"
-            echo "Please check: https://github.com/TomHart/lights-inventory/actions/runs/${{ github.event.workflow_run.id }}"
-          else
-            echo "Workflow succeeded"
-          fi
+          echo "Critical workflow ${{ github.event.workflow }} failed - rolling back..."
+          vercel rollback --token=${{ secrets.VERCEL_TOKEN }} --yes
+          echo "::notice::Automatically rolled back due to CI failure"
+      
+      - name: Notify rollback
+        run: |
+          echo "::error::Critical workflow ${{ github.event.workflow }} failed on main"
+          echo "Deployment has been automatically rolled back"
+          echo "Failed workflow: https://github.com/TomHart/lights-inventory/actions/runs/${{ github.event.workflow_run.id }}"
 
   deploy:
     runs-on: ubuntu-latest
@@ -58,7 +76,30 @@ jobs:
     if: failure()
     needs: deploy
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+      
+      - name: Pull Vercel Environment Information
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+      
+      - name: Rollback to previous deployment
+        run: |
+          echo "Rolling back to previous deployment..."
+          vercel rollback --token=${{ secrets.VERCEL_TOKEN }} --yes
+          echo "::notice::Successfully rolled back to previous deployment"
+      
       - name: Notify rollback
         run: |
-          echo "::error::Deployment failed, manual rollback required"
-          echo "Visit https://vercel.com/tomharts-projects/lights-inventory to rollback"
+          echo "::notice::Deployment failed and has been automatically rolled back"
+          echo "Previous deployment restored"
+          echo "Check: https://vercel.com/tomharts-projects/lights-inventory"

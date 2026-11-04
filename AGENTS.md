@@ -730,6 +730,26 @@ RECAPTCHA_SECRET=your-secret-key
 MAILGUN_SECRET=your-mailgun-key
 ```
 
+### GitHub Secrets
+
+The following secrets must be configured in GitHub repository settings (Settings → Secrets and variables → Actions):
+
+**Required for automated rollback:**
+- `VERCEL_TOKEN` - Vercel API token for automatic deployment rollback
+  - Get from: https://vercel.com/account/tokens
+  - Required by: Deploy with Rollback workflow
+  - Scope: Must have deployment rollback permissions
+
+**Required for Convex deployment:**
+- `CONVEX_DEPLOY_KEY` - Convex deployment key
+  - Get from: Convex dashboard → Settings → Deployment Keys
+  - Required by: Convex Deploy workflow
+
+**Optional for security scanning:**
+- `SNYK_TOKEN` - Snyk API token (currently disabled due to pnpm workspace incompatibility)
+  - Get from: https://snyk.io/account
+  - Required by: Snyk Security Scan workflow (when enabled)
+
 ## Troubleshooting
 
 ### Common Issues
