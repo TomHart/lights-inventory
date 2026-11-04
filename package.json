@@ -27,8 +27,7 @@
     ],
     "*.{json,md}": [
       "biome lint --write"
-    ],
-    "!src/routeTree.gen.ts": true
+    ]
   },
   "dependencies": {
     "@auth/core": "^0.41.3",
