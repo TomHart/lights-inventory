@@ -7,9 +7,6 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: 
-      name: Production
-      on_failure: rollback
     timeout-minutes: 15
     steps:
       - name: Checkout
@@ -32,16 +29,9 @@ jobs:
       - name: Build
         run: pnpm build
       
-      - name: Deploy to Vercel
-        id: deploy
-        run: |
-          echo "Deploying to Vercel..."
-          # Vercel deployment is automatic on push
-          echo "deployment_url=https://lights-inventory.vercel.app" >> $GITHUB_OUTPUT
-      
       - name: Health check
         run: |
-          echo "Waiting for deployment to be ready..."
+          echo "Waiting for Vercel deployment to be ready..."
           sleep 30
           curl -f https://lights-inventory.vercel.app/ || exit 1
           echo "Health check passed"
@@ -50,7 +40,6 @@ jobs:
     runs-on: ubuntu-latest
     if: failure()
     needs: deploy
-    environment: Production
     steps:
       - name: Notify rollback
         run: |
