@@ -266,9 +266,9 @@ function CreateSpareForm({ onSuccess }: { onSuccess: () => void }) {
     setLoading(true);
     try {
       await create({
-        socketType: socketType as any,
+        socketType: socketType as "E26" | "E12" | "E17" | "E39" | "GU10" | "GU24" | "MR16" | "G4" | "G9" | "T8" | "T5" | "PAR20" | "PAR30" | "PAR38" | "other",
         wattage: Number(wattage),
-        colourTemperature: colourTemperature as any,
+        colourTemperature: colourTemperature as "warm" | "cool" | "daylight",
         quantity: Number(quantity),
         productName: productName || undefined,
         productUrl: productUrl || undefined,
@@ -402,9 +402,9 @@ function EditSpareForm({
     try {
       await update({
         id: spare._id,
-        socketType: socketType as any,
+        socketType: socketType as "E26" | "E12" | "E17" | "E39" | "GU10" | "GU24" | "MR16" | "G4" | "G9" | "T8" | "T5" | "PAR20" | "PAR30" | "PAR38" | "other",
         wattage: Number(wattage),
-        colourTemperature: colourTemperature as any,
+        colourTemperature: colourTemperature as "warm" | "cool" | "daylight",
         quantity: Number(quantity),
         productName: productName || undefined,
         productUrl: productUrl || undefined,

@@ -1,8 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
-import type { Id } from "../../convex/_generated/dataModel";
+import type { Doc, Id } from "../../convex/_generated/dataModel";
 import { useState, useEffect, useRef } from "react";
+
+// Type for fixture with enriched fields from the API
+type FixtureWithDetails = Doc<"fixtures"> & {
+  roomName: string;
+  roomType: string;
+  propertyId: string;
+  propertyName: string;
+};
 import { AuthGuard } from "#/components/AuthGuard";
 import { Button } from "#/components/ui/button";
 import { Input } from "#/components/ui/input";
@@ -156,7 +164,11 @@ function FixtureDetailContent() {
     );
   }
 
-  const fixtureData = fixture as any;
+  const fixtureData = fixture as FixtureWithDetails | null;
+
+  if (!fixtureData) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
@@ -478,11 +490,11 @@ function CreateBulbForm({
     try {
       await create({
         fixtureId,
-        socketType: socketType as any,
+        socketType: socketType as "E26" | "E12" | "E17" | "E39" | "GU10" | "GU24" | "MR16" | "G4" | "G9" | "T8" | "T5" | "PAR20" | "PAR30" | "PAR38" | "other",
         features,
         wattage: Number(wattage),
-        colourTemperature: colourTemperature as any,
-        status: status as any,
+        colourTemperature: colourTemperature as "warm" | "cool" | "daylight",
+        status: status as "working" | "flickering" | "dead",
         installDate: new Date(installDate).getTime(),
         notes: notes || undefined,
         productName: productName || undefined,
@@ -653,10 +665,10 @@ function EditBulbForm({
     try {
       await update({
         id: bulb._id,
-        socketType: socketType as any,
+        socketType: socketType as "E26" | "E12" | "E17" | "E39" | "GU10" | "GU24" | "MR16" | "G4" | "G9" | "T8" | "T5" | "PAR20" | "PAR30" | "PAR38" | "other",
         features,
         wattage: Number(wattage),
-        colourTemperature: colourTemperature as any,
+        colourTemperature: colourTemperature as "warm" | "cool" | "daylight",
         installDate: new Date(installDate).getTime(),
         notes: notes || undefined,
         productName: productName || undefined,

@@ -22,6 +22,7 @@ export const { auth, signIn, signOut, store } = convexAuth({
             }
 
             // Development fallback: log the code to the Convex dashboard
+            // Note: In production, use a proper logging service instead of console.log
             console.log(
               `[DEV ONLY] Verification code for ${email}: ${token}`,
             );
@@ -31,7 +32,7 @@ export const { auth, signIn, signOut, store } = convexAuth({
             process.env.MAILGUN_DOMAIN ?? "mail.example.com";
           const fromAddress =
             process.env.AUTH_EMAIL_FROM ??
-            "Lights Inventory <noreply@" + domain + ">";
+            `Lights Inventory <noreply@${domain}>`;
           const form = new URLSearchParams();
           form.append("from", fromAddress);
           form.append("to", email);
@@ -51,8 +52,7 @@ export const { auth, signIn, signOut, store } = convexAuth({
             {
               method: "POST",
               headers: {
-                Authorization:
-                  "Basic " + btoa("api:" + apiKey),
+                Authorization: `Basic ${btoa(`api:${apiKey}`)}`,
               },
               body: form,
             },

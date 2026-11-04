@@ -276,7 +276,7 @@ function CreateRoomForm({
     if (!roomType) return;
     setLoading(true);
     try {
-      await create({ propertyId, name, roomType: roomType as any });
+      await create({ propertyId, name, roomType: roomType as "living_room" | "bedroom" | "kitchen" | "bathroom" | "dining_room" | "office" | "hallway" | "garage" | "basement" | "attic" | "laundry" | "closet" | "outdoor" | "other" });
       toast.success("Room created");
       onSuccess();
     } catch {

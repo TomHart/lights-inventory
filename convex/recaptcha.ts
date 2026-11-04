@@ -20,6 +20,7 @@ function logRecaptchaFailure(
   stage: string,
   details: Record<string, unknown>,
 ) {
+  // In production, replace with a proper logging service (e.g., Sentry, LogRocket)
   console.error(`[reCAPTCHA] ${stage}`, details);
 }
 
@@ -60,6 +61,7 @@ export const verify = action({
       if (process.env.NODE_ENV === "production") {
         throw new Error("reCAPTCHA Enterprise is not configured on the server.");
       }
+      // In development, log when reCAPTCHA is skipped for debugging
       console.log("[DEV] reCAPTCHA Enterprise verification skipped (missing config)");
       return { success: true, skipped: true };
     }

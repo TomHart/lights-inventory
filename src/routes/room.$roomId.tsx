@@ -1,8 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
-import type { Id } from "../../convex/_generated/dataModel";
+import type { Doc, Id } from "../../convex/_generated/dataModel";
 import { useState } from "react";
+
+// Type for room with enriched fields from the API
+type RoomWithDetails = Doc<"rooms"> & {
+  propertyName: string;
+};
 import { AuthGuard } from "#/components/AuthGuard";
 import { Button } from "#/components/ui/button";
 import { Input } from "#/components/ui/input";
@@ -125,11 +130,11 @@ function RoomDetailContent() {
       <div className="mb-6">
         <Link
           to="/property/$propertyId"
-          params={{ propertyId: (room as any).propertyId || "" }}
+          params={{ propertyId: (room as RoomWithDetails | null)?.propertyId || "" }}
           className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4 no-underline"
         >
           <ArrowLeft className="h-4 w-4" /> Back to{" "}
-          {(room as any).propertyName || "Property"}
+          {(room as RoomWithDetails | null)?.propertyName || "Property"}
         </Link>
         <div className="flex items-center justify-between">
           <div>
@@ -305,7 +310,7 @@ function CreateFixtureForm({
       await create({
         roomId,
         name: name || undefined,
-        location: location as any,
+        location: location as "ceiling" | "wall" | "floor" | "table" | "desk" | "under_cabinet" | "recessed" | "track" | "pendant" | "chandelier" | "sconce" | "outdoor" | "other",
         notes: notes || undefined,
       });
       toast.success("Fixture created");

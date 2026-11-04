@@ -17,6 +17,18 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "#/components/ui/tabs";
 import { Lightbulb } from "lucide-react";
 
+// Type definition for Google reCAPTCHA Enterprise
+declare global {
+  interface Window {
+    grecaptcha?: {
+      enterprise?: {
+        ready: (callback: () => void) => void;
+        execute: (siteKey: string | undefined, options: { action: string }) => Promise<string>;
+      };
+    };
+  }
+}
+
 const PENDING_VERIFICATION_KEY = "__lightsInventoryPendingVerification";
 const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY as
   | string
@@ -27,7 +39,7 @@ let recaptchaReady: Promise<void> | null = null;
 function ensureRecaptchaLoaded(): Promise<void> {
   if (recaptchaReady) return recaptchaReady;
   recaptchaReady = new Promise<void>((resolve) => {
-    const grecaptcha = (window as any).grecaptcha?.enterprise;
+    const grecaptcha = window.grecaptcha?.enterprise;
     if (grecaptcha?.ready) {
       grecaptcha.ready(() => resolve());
       return;
@@ -40,7 +52,7 @@ function ensureRecaptchaLoaded(): Promise<void> {
       recaptchaReady = null;
     };
     script.onload = () => {
-      const grecaptcha = (window as any).grecaptcha?.enterprise;
+      const grecaptcha = window.grecaptcha?.enterprise;
       if (!grecaptcha?.ready) {
         recaptchaReady = null;
         return;
@@ -144,7 +156,7 @@ function AuthForm({
   const getRecaptchaToken = useCallback(
     async (action: string): Promise<string> => {
       await ensureRecaptchaLoaded();
-      const grecaptcha = (window as any).grecaptcha?.enterprise;
+      const grecaptcha = window.grecaptcha?.enterprise;
       if (!grecaptcha?.execute) {
         throw new Error("reCAPTCHA is not available.");
       }
@@ -190,12 +202,11 @@ function AuthForm({
 
       const result = await signIn("password", { email, password, flow });
       // If signingIn is false and no error, verification code was sent
-      if (!(result as any)?.signingIn) {
+      if (!("signingIn" in result) || !result.signingIn) {
         onVerificationNeeded(email);
       }
-    } catch (err: any) {
-      console.error("Authentication failed during sign-up/sign-in:", err);
-      const msg = (err?.message ?? "").toLowerCase();
+    } catch (err: unknown) {
+      const msg = (err instanceof Error ? err.message : String(err)).toLowerCase();
       if (
         msg.includes("recaptcha") ||
         msg.includes("site key") ||

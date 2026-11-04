@@ -1,8 +1,9 @@
 import { ConvexAuthProvider } from "@convex-dev/auth/react";
 import { ConvexReactClient } from "convex/react";
 
-const CONVEX_URL = (import.meta as any).env.VITE_CONVEX_URL;
+const CONVEX_URL = import.meta.env.VITE_CONVEX_URL as string;
 if (!CONVEX_URL) {
+  // In production, replace with a proper logging service
   console.error("Missing VITE_CONVEX_URL environment variable");
 }
 

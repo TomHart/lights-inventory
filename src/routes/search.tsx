@@ -97,7 +97,7 @@ function SearchContent() {
     if (selectedIds.size === results.length) {
       setSelectedIds(new Set());
     } else {
-      setSelectedIds(new Set(results.map((r: any) => r.bulbId)));
+      setSelectedIds(new Set(results.map((r) => r.bulbId)));
     }
   };
 
@@ -105,7 +105,7 @@ function SearchContent() {
     if (selectedIds.size === 0) return;
     try {
       await bulkUpdateStatus({
-        ids: Array.from(selectedIds) as any,
+        ids: Array.from(selectedIds) as unknown as Array<import("../../convex/_generated/dataModel").Id<"bulbs">>,
         status: newStatus,
       });
       toast.success(`Updated ${selectedIds.size} bulbs to ${newStatus}`);

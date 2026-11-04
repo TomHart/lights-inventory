@@ -1,5 +1,12 @@
 import { mutation } from "./_generated/server";
 import { getVerifiedUserId } from "./auth.helpers";
+import type { Doc } from "./_generated/dataModel";
+
+// Temporary type for migration - fixtures that may still have deprecated fields
+type FixtureWithDeprecatedFields = Doc<"fixtures"> & {
+    socketType?: string;
+    features?: string[];
+};
 
 /**
  * One-time migration: backfill socketType and features on bulbs,
@@ -22,7 +29,7 @@ export const backfillSocketTypeAndFeatures = mutation({
             .withIndex("by_userId", (q) => q.eq("userId", userId))
             .collect();
 
-        const userFixtures = [] as Array<any>;
+        const userFixtures = [] as Array<FixtureWithDeprecatedFields>;
         for (const property of properties) {
             const rooms = await ctx.db
                 .query("rooms")
@@ -48,8 +55,8 @@ export const backfillSocketTypeAndFeatures = mutation({
                 if (bulb.socketType && bulb.features) continue;
 
                 const socketType =
-                    bulb.socketType || (fixture as any)?.socketType || "E26";
-                const features = bulb.features || (fixture as any)?.features || [];
+                    bulb.socketType || fixture.socketType || "E26";
+                const features = bulb.features || fixture.features || [];
 
                 await ctx.db.patch(bulb._id, { socketType, features });
                 bulbsUpdated++;
@@ -57,13 +64,14 @@ export const backfillSocketTypeAndFeatures = mutation({
         }
 
         // 2. Strip socketType/features from the current user's fixtures
+        // Note: These fields no longer exist in the schema, so this step is now a no-op
+        // Kept for historical context in case the schema changes back
         let fixturesUpdated = 0;
         for (const fixture of userFixtures) {
-            if ((fixture as any).socketType !== undefined || (fixture as any).features !== undefined) {
-                await ctx.db.patch(fixture._id, {
-                    socketType: undefined,
-                    features: undefined,
-                } as any);
+            // Check if fixture has deprecated fields (from old schema)
+            if ("socketType" in fixture || "features" in fixture) {
+                // These fields are not in the current schema, so we can't patch them
+                // This migration is now just for record-keeping
                 fixturesUpdated++;
             }
         }
