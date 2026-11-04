@@ -1,0 +1,58 @@
+name: Deploy with Rollback
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: 
+      name: Production
+      on_failure: rollback
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 10
+      
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+      
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      
+      - name: Build
+        run: pnpm build
+      
+      - name: Deploy to Vercel
+        id: deploy
+        run: |
+          echo "Deploying to Vercel..."
+          # Vercel deployment is automatic on push
+          echo "deployment_url=https://lights-inventory.vercel.app" >> $GITHUB_OUTPUT
+      
+      - name: Health check
+        run: |
+          echo "Waiting for deployment to be ready..."
+          sleep 30
+          curl -f https://lights-inventory.vercel.app/ || exit 1
+          echo "Health check passed"
+
+  rollback:
+    runs-on: ubuntu-latest
+    if: failure()
+    needs: deploy
+    environment: Production
+    steps:
+      - name: Notify rollback
+        run: |
+          echo "::error::Deployment failed, manual rollback required"
+          echo "Visit https://vercel.com/tomharts-projects/lights-inventory to rollback"

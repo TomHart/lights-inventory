@@ -8,6 +8,8 @@
       "convex/**/*.ts",
       "vite.config.ts",
       "vitest.config.ts",
+      "*.json",
+      "*.md",
       "!src/routeTree.gen.ts",
       "!convex/_generated",
       "!.output",
