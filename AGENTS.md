@@ -15,10 +15,20 @@ This repository is configured for **fully agentic control**. When you ask the AI
 
 **2. Development & Testing**
 - Make changes on the feature branch
-- Run type checking: `pnpm typecheck`
-- Run linting: `pnpm lint`
-- Run tests: `pnpm test`
-- Build locally: `pnpm build`
+- **MANDATORY PRE-COMMIT CHECKLIST** (must ALL pass before pushing):
+  ```bash
+  # 1. Type checking
+  pnpm typecheck
+  
+  # 2. Linting
+  pnpm lint
+  
+  # 3. Tests
+  pnpm test
+  
+  # 4. Build
+  pnpm build
+  ```
 - Deploy Convex locally for testing: `npx convex dev --once`
 
 **3. Pull Request Creation**
@@ -27,11 +37,19 @@ This repository is configured for **fully agentic control**. When you ask the AI
 - Include test plan and checklist
 - Link related issues
 
-**4. Check Monitoring**
-- Monitor GitHub Actions status checks
+**4. Check Monitoring (CRITICAL - DO NOT SKIP)**
+- Monitor GitHub Actions status checks for ALL workflows:
+  - ✅ Code Quality (lint + test + coverage)
+  - ✅ Convex Deploy (if convex/** changed)
+  - ✅ CodeQL Security Scanning
+  - ✅ E2E Tests (Playwright)
+  - ✅ Lighthouse CI (performance)
+  - ✅ Build Docs (TypeDoc)
+  - ✅ CI Pipeline
 - Monitor Vercel deployment status (both lights-inventory and lights-inventory-4.6)
 - Monitor Convex deployment status
-- Wait for all checks to pass before proceeding
+- **WAIT for all checks to pass before proceeding**
+- If any check fails, fix the issue locally, commit, push, and wait again
 
 **5. Deployment Verification**
 - Verify Vercel deployments complete successfully
@@ -45,10 +63,13 @@ This repository is configured for **fully agentic control**. When you ask the AI
 - Delete feature branch after merge
 - Verify main branch is updated
 
-**7. Post-Merge Verification**
+**7. Post-Merge Verification (CRITICAL - DO NOT SKIP)**
 - Monitor final deployment status
-- Verify all systems are operational
+- Verify all GitHub Actions workflows pass
+- Verify both Vercel and Convex deployments complete
+- Verify production URL is accessible
 - Report final status to user
+- **DO NOT consider the task complete until all CI checks pass**
 
 ### Required Status Checks
 
@@ -133,14 +154,44 @@ git push origin --delete branch-name
 
 When asked to make changes, the agent will:
 1. ✅ Create appropriate feature branch
-2. ✅ Make changes and run all local checks
+2. ✅ Make changes and run ALL local checks (typecheck, lint, test, build)
 3. ✅ Push and create PR with detailed description
-4. ✅ Monitor all status checks until complete
+4. ✅ Monitor ALL GitHub Actions status checks until complete (this may take several minutes)
 5. ✅ Verify both Vercel and Convex deployments
 6. ✅ Report status and wait for merge approval
 7. ✅ Merge when explicitly instructed
 8. ✅ Clean up branches after merge
-9. ✅ Verify final deployment status
+9. ✅ Verify final deployment status and ALL CI checks pass
+
+### CRITICAL RULES - NEVER VIOLATE
+
+**1. NEVER push without running all local checks first**
+- Always run: `pnpm typecheck && pnpm lint && pnpm test && pnpm build`
+- If any check fails, fix it before pushing
+- No exceptions
+
+**2. NEVER consider a task complete without verifying GitHub Actions**
+- After pushing, wait for GitHub Actions to run
+- Check status of ALL workflows (Code Quality, Convex Deploy, CodeQL, E2E, Lighthouse, Build Docs, CI Pipeline)
+- If any workflow fails, fix the issue locally, commit, push, and wait again
+- Only report success when ALL checks pass
+
+**3. NEVER merge without explicit user approval**
+- Even if all checks pass, wait for user to say "merge" or "approve"
+- The agent must never merge automatically
+
+**4. ALWAYS use the agentic workflow for non-trivial changes**
+- Create a feature branch
+- Create a PR
+- Monitor checks
+- Wait for approval
+- Merge
+- Clean up
+
+**5. For trivial changes (documentation, config), you may push directly to main**
+- BUT you must still run all local checks first
+- AND you must still verify GitHub Actions pass
+- If GitHub Actions fail, fix immediately
 
 The agent will **NOT** merge without explicit user approval, even if all checks pass.
 
