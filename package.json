@@ -30,7 +30,7 @@
     "@auth/core": "^0.37.4",
     "@convex-dev/auth": "^0.0.91",
     "@convex-dev/react-query": "0.1.0",
-    "@tailwindcss/vite": "^4.1.18",
+    "@tailwindcss/vite": "^4.3.3",
     "@tanstack/react-devtools": "0.10.0",
     "@tanstack/react-router": "1.168.2",
     "@tanstack/react-router-devtools": "1.166.11",
