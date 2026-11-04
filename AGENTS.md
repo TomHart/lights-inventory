@@ -2,6 +2,148 @@
 
 This guide helps developers understand the codebase architecture, development workflow, and common tasks.
 
+## Agentic Workflow
+
+This repository is configured for **fully agentic control**. When you ask the AI agent to make changes, it will automatically handle the entire development lifecycle:
+
+### Agentic Development Process
+
+**1. Branch Creation**
+- Create a descriptive feature branch from main
+- Branch naming: `feature/description` or `fix/description`
+- Example: `feature/add-user-dashboard` or `fix-auth-bug`
+
+**2. Development & Testing**
+- Make changes on the feature branch
+- Run type checking: `pnpm typecheck`
+- Run linting: `pnpm lint`
+- Run tests: `pnpm test`
+- Build locally: `pnpm build`
+- Deploy Convex locally for testing: `npx convex dev --once`
+
+**3. Pull Request Creation**
+- Push branch to remote
+- Create PR using GitHub CLI with detailed description
+- Include test plan and checklist
+- Link related issues
+
+**4. Check Monitoring**
+- Monitor GitHub Actions status checks
+- Monitor Vercel deployment status (both lights-inventory and lights-inventory-4.6)
+- Monitor Convex deployment status
+- Wait for all checks to pass before proceeding
+
+**5. Deployment Verification**
+- Verify Vercel deployments complete successfully
+- Verify Convex deployment completes successfully
+- Check production URL is accessible
+- Verify functionality in production if applicable
+
+**6. Merge Process**
+- Only merge when explicitly instructed by user
+- Merge PR using GitHub CLI
+- Delete feature branch after merge
+- Verify main branch is updated
+
+**7. Post-Merge Verification**
+- Monitor final deployment status
+- Verify all systems are operational
+- Report final status to user
+
+### Required Status Checks
+
+**Before merging, ensure all checks pass:**
+- ✅ Vercel – lights-inventory: Deployment has completed
+- ✅ Vercel – lights-inventory-4.6: Deployment has completed
+- ✅ Convex Deploy: Typecheck, tests, and deployment all pass
+- ✅ Code Quality: Linting and type checking pass
+
+### Deployment Platforms
+
+**Vercel (Frontend):**
+- Main project: `lights-inventory` (https://lights-inventory.vercel.app)
+- Preview project: `lights-inventory-4.6`
+- Both deploy on push to main
+- Monitor via GitHub status checks
+
+**Convex (Backend):**
+- Production deployment: https://zealous-elephant-547.convex.cloud
+- Deploys via GitHub Actions on push to main (when convex/** changes)
+- Can also deploy manually: `npx convex deploy --yes`
+- Monitor via GitHub Actions workflow
+
+### Agentic Commands Reference
+
+```bash
+# Create feature branch
+git checkout -b feature/description
+
+# Push and create PR
+git push -u origin feature/description
+gh pr create --title "Title" --body "Description"
+
+# Monitor status checks
+gh api repos/TomHart/lights-inventory/commits/HEAD/status
+
+# Monitor Vercel deployments
+gh run list --workflow=convex-deploy.yml
+
+# Merge PR (only when instructed)
+gh pr merge --merge
+
+# Delete branch after merge
+git branch -d feature/description
+git push origin --delete feature/description
+
+# Deploy Convex manually
+npx convex deploy --yes
+```
+
+### Repository Rules
+
+This repository has the following branch protection rules:
+- **main branch is protected** - requires PR for changes
+- **Required status checks**: test must pass
+- **Changes must be made through pull request**
+- **Bypass rules**: May be bypassed for direct commits (used by agent for documentation updates)
+
+### Monitoring Commands
+
+```bash
+# Check GitHub Actions workflows
+gh workflow list
+
+# Check recent workflow runs
+gh run list --limit 5
+
+# Check specific workflow run
+gh run view <run-id>
+
+# Check commit status
+gh api repos/TomHart/lights-inventory/commits/main/status
+
+# List branches
+gh api repos/TomHart/lights-inventory/branches
+
+# Delete remote branch
+git push origin --delete branch-name
+```
+
+### Agent Responsibilities
+
+When asked to make changes, the agent will:
+1. ✅ Create appropriate feature branch
+2. ✅ Make changes and run all local checks
+3. ✅ Push and create PR with detailed description
+4. ✅ Monitor all status checks until complete
+5. ✅ Verify both Vercel and Convex deployments
+6. ✅ Report status and wait for merge approval
+7. ✅ Merge when explicitly instructed
+8. ✅ Clean up branches after merge
+9. ✅ Verify final deployment status
+
+The agent will **NOT** merge without explicit user approval, even if all checks pass.
+
 ## Quick Start
 
 ```bash
