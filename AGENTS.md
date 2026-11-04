@@ -193,6 +193,38 @@ When asked to make changes, the agent will:
 - AND you must still verify GitHub Actions pass
 - If GitHub Actions fail, fix immediately
 
+**6. PRE-COMMIT VERIFICATION CHECKLIST**
+Before committing or pushing, verify:
+- [ ] `pnpm typecheck` passes
+- [ ] `pnpm lint` passes (or only warnings, no errors)
+- [ ] `pnpm test` passes
+- [ ] `pnpm build` passes
+- [ ] No uncommitted changes except what you're committing
+- [ ] Dependencies are up to date if needed
+
+**7. POST-PUSH VERIFICATION CHECKLIST**
+After pushing, before reporting success:
+- [ ] GitHub Actions have started running
+- [ ] Wait for all workflows to complete
+- [ ] Verify Code Quality workflow passes
+- [ ] Verify CI Pipeline workflow passes
+- [ ] Verify Convex Deploy passes (if applicable)
+- [ ] Verify CodeQL passes
+- [ ] Verify E2E Tests passes (or continues with fallback)
+- [ ] Verify Lighthouse CI passes (or continues with fallback)
+- [ ] Verify Build Docs passes (or continues with fallback)
+- [ ] Vercel deployments complete successfully
+- [ ] Production URL is accessible
+- [ ] Only report success when ALL above are true
+
+**8. EMERGENCY ROLLBACK PROCEDURE**
+If you push and realize something is broken:
+1. Immediately notify the user
+2. Don't continue with other tasks
+3. Revert the commit if possible
+4. Or create a fix commit immediately
+5. Never leave the repository in a broken state
+
 The agent will **NOT** merge without explicit user approval, even if all checks pass.
 
 ## Quick Start

@@ -18,6 +18,7 @@
     "test:e2e": "playwright test",
     "typecheck": "tsc --noEmit",
     "docs:build": "typedoc",
+    "safety-check": "./scripts/safety-check.sh",
     "prepare": "husky"
   },
   "lint-staged": {
