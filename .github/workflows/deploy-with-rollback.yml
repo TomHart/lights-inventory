@@ -27,12 +27,12 @@ jobs:
         run: npm install --global vercel@latest
       
       - name: Pull Vercel Environment Information
-        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }} --scope=tomharts-projects
       
       - name: Rollback to previous deployment
         run: |
           echo "Critical workflow ${{ github.event.workflow }} failed - rolling back..."
-          vercel rollback --token=${{ secrets.VERCEL_TOKEN }} --yes
+          vercel rollback --token=${{ secrets.VERCEL_TOKEN }} --yes --scope=tomharts-projects
           echo "::notice::Automatically rolled back due to CI failure"
       
       - name: Notify rollback
@@ -90,12 +90,12 @@ jobs:
         run: npm install --global vercel@latest
       
       - name: Pull Vercel Environment Information
-        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }} --scope=tomharts-projects
       
       - name: Rollback to previous deployment
         run: |
           echo "Rolling back to previous deployment..."
-          vercel rollback --token=${{ secrets.VERCEL_TOKEN }} --yes
+          vercel rollback --token=${{ secrets.VERCEL_TOKEN }} --yes --scope=tomharts-projects
           echo "::notice::Successfully rolled back to previous deployment"
       
       - name: Notify rollback
