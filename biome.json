@@ -10,6 +10,7 @@
       "vitest.config.ts",
       "*.json",
       "*.md",
+      "docs/**/*.md",
       "!src/routeTree.gen.ts",
       "!convex/_generated",
       "!.output",
