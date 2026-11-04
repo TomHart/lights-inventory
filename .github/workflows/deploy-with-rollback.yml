@@ -3,8 +3,26 @@ name: Deploy with Rollback
 on:
   push:
     branches: [main]
+  workflow_run:
+    workflows: ["CI Pipeline", "Code Quality", "Convex Deploy"]
+    types: [completed]
 
 jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_run'
+    timeout-minutes: 15
+    steps:
+      - name: Check workflow status
+        run: |
+          if [ "${{ github.event.workflow_run.conclusion }}" = "failure" ]; then
+            echo "Workflow failed - triggering rollback notification"
+            echo "::error::Critical workflow ${{ github.event.workflow }} failed on main"
+            echo "Please check: https://github.com/TomHart/lights-inventory/actions/runs/${{ github.event.workflow_run.id }}"
+          else
+            echo "Workflow succeeded"
+          fi
+
   deploy:
     runs-on: ubuntu-latest
     timeout-minutes: 15
