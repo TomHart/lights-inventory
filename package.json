@@ -31,7 +31,7 @@
     "@convex-dev/auth": "^0.0.91",
     "@convex-dev/react-query": "0.1.0",
     "@tailwindcss/vite": "^4.1.18",
-    "@tanstack/react-devtools": "0.10.0",
+    "@tanstack/react-devtools": "0.10.14",
     "@tanstack/react-router": "1.168.2",
     "@tanstack/react-router-devtools": "1.166.11",
     "@tanstack/react-router-ssr-query": "1.166.10",
