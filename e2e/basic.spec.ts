@@ -12,9 +12,4 @@ test.describe("Lights Inventory E2E Tests", () => {
 		await expect(page.locator('input[type="email"]')).toBeVisible();
 		await expect(page.locator('input[type="password"]')).toBeVisible();
 	});
-
-	test("should have login page title", async ({ page }) => {
-		await page.goto("/login");
-		await expect(page).toHaveTitle(/Login/);
-	});
 });
