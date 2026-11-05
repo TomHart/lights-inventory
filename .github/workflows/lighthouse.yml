@@ -26,8 +26,8 @@ jobs:
 
       - run: pnpm build
 
-      - name: Wait for deployment
-        run: sleep 90
+      - name: Wait for Vercel deployment
+        run: timeout 300 bash -c 'until curl -f https://lights-inventory.vercel.app/; do sleep 5; done'
 
       - name: Run Lighthouse CI
         uses: treosh/lighthouse-ci-action@v10
@@ -36,4 +36,3 @@ jobs:
             https://lights-inventory.vercel.app
           uploadArtifacts: true
           temporaryPublic: true
-        continue-on-error: true

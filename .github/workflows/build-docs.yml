@@ -23,9 +23,10 @@ jobs:
           node-version: 22
           cache: 'pnpm'
 
-      - run: pnpm install
+      - run: pnpm install --frozen-lockfile
 
-      - run: pnpm docs:build || echo "TypeDoc failed - skipping for now (TypeScript 7.0 compatibility issue)"
+      - name: Build docs
+        run: pnpm docs:build || echo "TypeDoc failed - TypeScript 7.0 compatibility issue, skipping docs generation"
 
       - uses: actions/upload-artifact@v4
         if: success()
