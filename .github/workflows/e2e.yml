@@ -29,10 +29,18 @@ jobs:
       - run: pnpm build
 
       - name: Start preview server
-        run: pnpm preview &
+        run: nohup pnpm preview > /tmp/preview.log 2>&1 &
 
       - name: Wait for server
-        run: npx wait-on http://localhost:3000 --timeout 120000
+        run: |
+          for i in {1..30}; do
+            if curl -s http://localhost:3000 > /dev/null; then
+              echo "Server is ready"
+              break
+            fi
+            echo "Waiting for server... ($i/30)"
+            sleep 2
+          done
 
       - run: pnpm test:e2e
 
