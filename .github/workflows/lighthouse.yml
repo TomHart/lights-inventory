@@ -49,4 +49,4 @@ jobs:
           urls: |
             http://localhost:3000
           uploadArtifacts: true
-          temporaryPublic: true
+          artifactName: lighthouse-report
