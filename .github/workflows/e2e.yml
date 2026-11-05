@@ -28,7 +28,7 @@ jobs:
 
       - run: pnpm test:e2e
 
-      - uses: actions/upload-artifact@507c9530eadcdd175e790b3b8c7b72b783d685ea # v4.4.3
+      - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: playwright-report
