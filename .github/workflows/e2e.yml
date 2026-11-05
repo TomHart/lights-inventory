@@ -26,21 +26,24 @@ jobs:
 
       - run: npx playwright install --with-deps
 
-      - name: Start dev server
-        run: pnpm dev:app &
+      - name: Start dev servers (Convex + Vite)
+        run: pnpm dev &
         env:
           CI: true
 
-      - name: Wait for server
+      - name: Wait for servers
         run: |
+          echo "Waiting for Vite server..."
           for i in {1..60}; do
             if curl -s http://localhost:3000 > /dev/null; then
-              echo "Server is ready"
+              echo "Vite server is ready"
               break
             fi
-            echo "Waiting for server... ($i/60)"
+            echo "Waiting for Vite server... ($i/60)"
             sleep 2
           done
+          echo "Waiting additional time for Convex initialization..."
+          sleep 10
 
       - run: pnpm test:e2e
 
