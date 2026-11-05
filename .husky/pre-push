@@ -1,9 +1,0 @@
-#!/bin/sh
-. "$(dirname "$0")/_/husky.sh"
-
-echo "🔒 Running pre-push safety checks..."
-
-# Run the safety check script
-pnpm safety-check
-
-echo "✅ Pre-push checks passed!"

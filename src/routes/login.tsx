@@ -1,12 +1,9 @@
+import { useAuthActions } from "@convex-dev/auth/react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useConvexAuth } from "convex/react";
-import { useAction } from "convex/react";
-import { api } from "../../convex/_generated/api";
-import { useAuthActions } from "@convex-dev/auth/react";
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { Lightbulb } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import { Button } from "#/components/ui/button";
-import { Input } from "#/components/ui/input";
-import { Label } from "#/components/ui/label";
 import {
   Card,
   CardContent,
@@ -14,8 +11,11 @@ import {
   CardHeader,
   CardTitle,
 } from "#/components/ui/card";
+import { Input } from "#/components/ui/input";
+import { Label } from "#/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "#/components/ui/tabs";
-import { Lightbulb } from "lucide-react";
+import { userMessage } from "#/lib/errors";
+import { passwordStrength as scorePassword } from "#/lib/password-strength";
 
 // Type definition for Google reCAPTCHA Enterprise
 declare global {
@@ -23,7 +23,10 @@ declare global {
     grecaptcha?: {
       enterprise?: {
         ready: (callback: () => void) => void;
-        execute: (siteKey: string | undefined, options: { action: string }) => Promise<string>;
+        execute: (
+          siteKey: string | undefined,
+          options: { action: string },
+        ) => Promise<string>;
       };
     };
   }
@@ -38,10 +41,18 @@ const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY as
 let recaptchaReady: Promise<void> | null = null;
 function ensureRecaptchaLoaded(): Promise<void> {
   if (recaptchaReady) return recaptchaReady;
-  recaptchaReady = new Promise<void>((resolve) => {
+  recaptchaReady = new Promise<void>((resolve, reject) => {
+    const timeout = window.setTimeout(() => {
+      recaptchaReady = null;
+      reject(new Error("reCAPTCHA timed out"));
+    }, 15_000);
+    const ready = () => {
+      window.clearTimeout(timeout);
+      resolve();
+    };
     const grecaptcha = window.grecaptcha?.enterprise;
     if (grecaptcha?.ready) {
-      grecaptcha.ready(() => resolve());
+      grecaptcha.ready(ready);
       return;
     }
     const script = document.createElement("script");
@@ -58,7 +69,7 @@ function ensureRecaptchaLoaded(): Promise<void> {
         return;
       }
 
-      grecaptcha.ready(() => resolve());
+      grecaptcha.ready(ready);
     };
     document.head.appendChild(script);
   });
@@ -67,7 +78,6 @@ function ensureRecaptchaLoaded(): Promise<void> {
 
 export const Route = createFileRoute("/login")({
   component: LoginPage,
-  ssr: false,
 });
 
 function LoginPage() {
@@ -142,7 +152,6 @@ function AuthForm({
   onVerificationNeeded: (email: string) => void;
 }) {
   const { signIn } = useAuthActions();
-  const verifyRecaptcha = useAction(api.recaptcha.verify);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -150,7 +159,9 @@ function AuthForm({
 
   // Eagerly load the reCAPTCHA script when the form mounts
   useEffect(() => {
-    void ensureRecaptchaLoaded();
+    void ensureRecaptchaLoaded().catch(() =>
+      setError("Unable to load reCAPTCHA. Check your connection and retry."),
+    );
   }, []);
 
   const getRecaptchaToken = useCallback(
@@ -168,20 +179,7 @@ function AuthForm({
     [],
   );
 
-  const passwordStrength = useMemo(() => {
-    if (flow !== "signUp" || password.length === 0) return null;
-    let score = 0;
-    if (password.length >= 6) score++;
-    if (password.length >= 10) score++;
-    if (/[A-Z]/.test(password)) score++;
-    if (/[0-9]/.test(password)) score++;
-    if (/[^A-Za-z0-9]/.test(password)) score++;
-    if (score <= 1) return { label: "Weak", colour: "bg-red-500", width: "w-1/5" };
-    if (score === 2) return { label: "Fair", colour: "bg-orange-500", width: "w-2/5" };
-    if (score === 3) return { label: "Good", colour: "bg-yellow-500", width: "w-3/5" };
-    if (score === 4) return { label: "Strong", colour: "bg-green-500", width: "w-4/5" };
-    return { label: "Very strong", colour: "bg-green-600", width: "w-full" };
-  }, [password, flow]);
+  const passwordStrength = flow === "signUp" ? scorePassword(password) : null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -195,38 +193,23 @@ function AuthForm({
     try {
       // Always verify server-side when reCAPTCHA is enabled; local development can bypass it.
       const recaptchaToken = await getRecaptchaToken(flow);
-      await verifyRecaptcha({
-        token: recaptchaToken,
-        action: flow,
+      const result = await signIn("password", {
+        email,
+        password,
+        flow,
+        recaptchaToken,
       });
-
-      const result = await signIn("password", { email, password, flow });
       // If signingIn is false and no error, verification code was sent
       if (!("signingIn" in result) || !result.signingIn) {
         onVerificationNeeded(email);
       }
     } catch (err: unknown) {
-      const msg = (err instanceof Error ? err.message : String(err)).toLowerCase();
-      if (
-        msg.includes("recaptcha") ||
-        msg.includes("site key") ||
-        msg.includes("api.js") ||
-        msg.includes("execute")
-      ) {
-        setError("reCAPTCHA verification failed. Please try again.");
-      } else if (
-        msg.includes("invalidaccountid") ||
-        msg.includes("invalid") ||
-        msg.includes("could not find") ||
-        msg.includes("incorrect") ||
-        msg.includes("credentials")
-      ) {
-        setError("Invalid email or password. Please try again.");
-      } else if (msg.includes("too many") || msg.includes("rate")) {
-        setError("Too many attempts. Please wait a moment and try again.");
-      } else {
-        setError("Authentication failed. Please try again.");
-      }
+      setError(
+        userMessage(
+          err,
+          "Authentication failed. Check your credentials and try again.",
+        ),
+      );
     } finally {
       setLoading(false);
     }
@@ -250,7 +233,9 @@ function AuthForm({
         <Input
           id={`${flow}-password`}
           type="password"
-          placeholder={flow === "signUp" ? "At least 8 characters" : "Enter your password"}
+          placeholder={
+            flow === "signUp" ? "At least 8 characters" : "Enter your password"
+          }
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required

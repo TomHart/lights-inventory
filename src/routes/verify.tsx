@@ -1,10 +1,9 @@
+import { useAuthActions } from "@convex-dev/auth/react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useConvexAuth } from "convex/react";
-import { useAuthActions } from "@convex-dev/auth/react";
-import { useState, useEffect } from "react";
+import { ArrowLeft, Mail } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Button } from "#/components/ui/button";
-import { Input } from "#/components/ui/input";
-import { Label } from "#/components/ui/label";
 import {
   Card,
   CardContent,
@@ -12,13 +11,14 @@ import {
   CardHeader,
   CardTitle,
 } from "#/components/ui/card";
-import { Mail, ArrowLeft } from "lucide-react";
+import { Input } from "#/components/ui/input";
+import { Label } from "#/components/ui/label";
+import { userMessage } from "#/lib/errors";
 
 const PENDING_VERIFICATION_KEY = "__lightsInventoryPendingVerification";
 
 export const Route = createFileRoute("/verify")({
   component: VerifyPage,
-  ssr: false,
 });
 
 function VerifyPage() {
@@ -91,10 +91,8 @@ function VerifyForm({ email }: { email: string }) {
       });
       // On success the user becomes authenticated —
       // the useEffect in VerifyPage will redirect to /
-    } catch (err: any) {
-      setError(
-        err?.message || "Invalid or expired code. Please try again.",
-      );
+    } catch (err) {
+      setError(userMessage(err, "Invalid or expired code. Please try again."));
     } finally {
       setLoading(false);
     }
@@ -125,12 +123,7 @@ function VerifyForm({ email }: { email: string }) {
         {loading ? "Verifying..." : "Verify Email"}
       </Button>
       <div className="flex items-center justify-between">
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={handleBack}
-        >
+        <Button type="button" variant="ghost" size="sm" onClick={handleBack}>
           <ArrowLeft className="h-4 w-4 mr-1" />
           Back
         </Button>

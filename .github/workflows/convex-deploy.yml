@@ -9,6 +9,9 @@ on:
       - package.json
       - pnpm-lock.yaml
       - convex.json
+      - pnpm-workspace.yaml
+      - src/lib/entity-types.ts
+      - src/lib/import-data.ts
       - .github/workflows/convex-deploy.yml
   workflow_dispatch:
 
@@ -30,8 +33,6 @@ jobs:
 
       - name: Setup pnpm
         uses: pnpm/action-setup@b307475762933b98ed359c036b0e51f26b63b74b # v5.0.0
-        with:
-          version: 10
 
       - name: Setup Node
         uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
@@ -46,10 +47,10 @@ jobs:
         run: pnpm typecheck
 
       - name: Run tests
-        run: pnpm exec vitest run --passWithNoTests
+        run: pnpm test
 
       - name: Deploy Convex (production)
         env:
           CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
           CONVEX_DEPLOYMENT: ${{ vars.CONVEX_DEPLOYMENT_PROD }}
-        run: npx convex deploy
+        run: pnpm exec convex deploy

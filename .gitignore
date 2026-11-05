@@ -2,10 +2,13 @@ node_modules
 .DS_Store
 dist
 dist-ssr
+coverage
+.cache
+playwright-report
+test-results
+playwright/.auth
 *.local
-.env
-.env.local
-.env.*.local
+.env*
 !.env.example
 .nitro
 .tanstack
@@ -15,4 +18,3 @@ dist-ssr
 __unconfig*
 todos.json
 .vercel
-.env*

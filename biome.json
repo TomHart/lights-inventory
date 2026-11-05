@@ -20,6 +20,7 @@
       "!dist-ssr"
     ]
   },
+  "formatter": { "enabled": true, "indentStyle": "space", "indentWidth": 2 },
   "linter": {
     "enabled": true,
     "rules": {
