@@ -3,6 +3,8 @@ name: Lighthouse CI
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 jobs:
@@ -22,15 +24,29 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      - run: pnpm build
+      - name: Start dev servers (Convex + Vite)
+        run: pnpm dev &
+        env:
+          CI: true
 
-      - name: Wait for Vercel deployment
-        run: timeout 300 bash -c 'until curl -f https://lights-inventory.vercel.app/; do sleep 5; done'
+      - name: Wait for servers
+        run: |
+          echo "Waiting for Vite server..."
+          for i in {1..60}; do
+            if curl -s http://localhost:3000 > /dev/null; then
+              echo "Vite server is ready"
+              break
+            fi
+            echo "Waiting for Vite server... ($i/60)"
+            sleep 2
+          done
+          echo "Waiting additional time for Convex initialization..."
+          sleep 10
 
       - name: Run Lighthouse CI
         uses: treosh/lighthouse-ci-action@v10
         with:
           urls: |
-            https://lights-inventory.vercel.app
+            http://localhost:3000
           uploadArtifacts: true
           temporaryPublic: true
