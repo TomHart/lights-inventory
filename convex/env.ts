@@ -35,8 +35,10 @@ export function validateEnv() {
 	}
 }
 
-// Validate environment variables on startup and export typed values
-validateEnv();
+// Validate environment variables on startup (only when running, not during analysis)
+if (process.env.CONVEX_DEPLOYMENT) {
+	validateEnv();
+}
 
 export const env = {
 	RECAPTCHA_PROJECT_ID: process.env.RECAPTCHA_PROJECT_ID!,
