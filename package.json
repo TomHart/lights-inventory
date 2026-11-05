@@ -1,5 +1,5 @@
 {
-  "name": "lights-inventory-4.6",
+  "name": "lights-inventory",
   "private": true,
   "type": "module",
   "imports": {
