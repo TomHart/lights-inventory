@@ -13,7 +13,7 @@ export default defineConfig({
 	},
 	projects: [{ name: "chromium" }, { name: "firefox" }, { name: "webkit" }],
 	webServer: {
-		command: "npm run build && npm run preview",
+		command: "npm run preview",
 		port: 3000,
 		timeout: 120000,
 	},
