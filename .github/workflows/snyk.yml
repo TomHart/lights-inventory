@@ -1,4 +1,4 @@
-name: Snyk Security Scan
+name: Security Audit
 
 on:
   push:
@@ -22,8 +22,11 @@ jobs:
           node-version: 22
           cache: 'pnpm'
 
-      - run: pnpm install
+      - run: pnpm install --frozen-lockfile
 
-      # Snyk doesn't support pnpm workspaces well - skip for now
-      - name: Skip Snyk (pnpm workspaces not supported)
-        run: echo "Snyk security scan skipped - pnpm workspaces not supported by Snyk CLI"
+      - name: Run npm audit
+        run: |
+          pnpm audit --audit-level=critical || {
+            echo "::warning::Security vulnerabilities found. Review the output above."
+            exit 0
+          }
