@@ -12,8 +12,4 @@ export default defineConfig({
 		trace: "on-first-retry",
 	},
 	projects: [{ name: "chromium" }, { name: "firefox" }, { name: "webkit" }],
-	webServer: {
-		command: "npm run build && npm run preview",
-		port: 3000,
-	},
 });
