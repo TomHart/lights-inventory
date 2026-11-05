@@ -47,7 +47,6 @@
     "convex": "^1.49.0",
     "lucide-react": "^1.67.0",
     "next-themes": "^0.4.6",
-    "nitro": "npm:nitro-nightly@3.0.261103-rc",
     "radix-ui": "^1.8.1",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
