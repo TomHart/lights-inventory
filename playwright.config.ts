@@ -8,12 +8,13 @@ export default defineConfig({
 	workers: process.env.CI ? 1 : undefined,
 	reporter: "html",
 	use: {
-		baseURL: process.env.CI ? "https://lights-inventory.vercel.app" : "http://localhost:3000",
+		baseURL: "http://localhost:3000",
 		trace: "on-first-retry",
 	},
 	projects: [{ name: "chromium" }, { name: "firefox" }, { name: "webkit" }],
-	webServer: process.env.CI ? undefined : {
+	webServer: {
 		command: "npm run build && npm run preview",
 		port: 3000,
+		timeout: 120000,
 	},
 });
