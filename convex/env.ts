@@ -35,7 +35,9 @@ export function validateEnv() {
 	}
 }
 
-// Export typed environment variables
+// Validate environment variables on startup and export typed values
+validateEnv();
+
 export const env = {
 	RECAPTCHA_PROJECT_ID: process.env.RECAPTCHA_PROJECT_ID!,
 	RECAPTCHA_API_KEY: process.env.RECAPTCHA_API_KEY!,

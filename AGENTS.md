@@ -79,7 +79,26 @@ This repository is configured for **fully agentic control**. When you ask the AI
 - ✅ Convex Deploy: Typecheck, tests, and deployment all pass
 - ✅ Code Quality: Linting and type checking pass
 
-### Deployment Platforms
+### Deployment
+
+**Vercel Deployment Owner:**
+This repository uses Vercel Git integration for automatic deployments:
+- **Production deployments**: Automatically triggered on push to `main` branch
+- **Preview deployments**: Automatically triggered on pull requests
+- **Deployment owner**: Vercel Git integration (not GitHub Actions)
+- **GitHub Actions role**: Validation and testing only, not deployment
+
+**Deployment Decision:**
+We use Vercel Git integration as the single source of truth for deployments. GitHub Actions runs:
+- Type checking, linting, tests, and build validation
+- Convex backend deployment
+- Rollback monitoring (triggers Vercel rollback on CI failure)
+
+This separation ensures:
+- Clear deployment ownership (Vercel Git integration)
+- CI validation before deployment (GitHub Actions)
+- Automatic rollback protection on failures
+- No duplicate deployments or race conditions Platforms
 
 **Vercel (Frontend):**
 - Main project: `lights-inventory` (https://lights-inventory.vercel.app)
