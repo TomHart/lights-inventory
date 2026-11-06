@@ -61,7 +61,7 @@ Configure Convex Auth keys/site URL, reCAPTCHA Enterprise credentials and Mailgu
 - `src/lib/import-data.ts` parses unknown JSON, validates the full tree and counts preview entities for both client and backend. Import is additive and atomic; malformed data must not result in partial writes. Preserve the versioned export format.
 - Use indexed Convex reads. Dashboard/search share a 20000-document read budget; preserve the dashboard's partial-data indicator. Avoid introducing denormalized counters or search infrastructure without measured need.
 - `convex/rateLimit.ts` uses transactional unique per-key rows and an `updatedAt` index. `convex/crons.ts` schedules bounded stale-row cleanup. Never add a process-local auth counter.
-- Keep `convex/migrations.ts` until the owner confirms the production socket/features backfill completed. Do not infer production data state from imports or local type checks, and do not run migrations without approval.
+- The owner confirmed the legacy socket/features backfill complete and approved removing its one-off migration endpoint. Do not restore the obsolete endpoint or run new migrations without explicit approval.
 - Use Convex validators (`v.id`, `v.optional`, `v.union`, etc.) for function args and schema. Convex supplies `_id` and `_creationTime`; do not declare them in table schemas. Avoid unvalidated public arbitrary-user-ID arguments.
 - Do not hand-edit generated files in `convex/_generated/` or `src/routeTree.gen.ts`. Regenerate through the installed Convex CLI and the TanStack Vite plugin respectively.
 - Follow existing React/Tailwind patterns. Prefer shared abstractions for demonstrated duplication, not speculative layers.

@@ -16,7 +16,6 @@ import type * as fixtures from "../fixtures.js";
 import type * as http from "../http.js";
 import type * as inventory from "../inventory.js";
 import type * as maintenance from "../maintenance.js";
-import type * as migrations from "../migrations.js";
 import type * as properties from "../properties.js";
 import type * as rateLimit from "../rateLimit.js";
 import type * as recaptcha from "../recaptcha.js";
@@ -40,7 +39,6 @@ declare const fullApi: ApiFromModules<{
   http: typeof http;
   inventory: typeof inventory;
   maintenance: typeof maintenance;
-  migrations: typeof migrations;
   properties: typeof properties;
   rateLimit: typeof rateLimit;
   recaptcha: typeof recaptcha;
