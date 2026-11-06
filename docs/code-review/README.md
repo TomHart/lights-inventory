@@ -1,13 +1,21 @@
 # Repository Code Review — Lights Inventory
 
-**Implementation status (2026-11-05):** Source remediations are published on
-`fix/code-review-remediation` as draft PR #41, using the owner-approved static SPA and deletion choices.
-At this publication checkpoint the PR is not merged; production rollout remains pending.
-Consult PR #41 and its deployment checks for the subsequent merge and rollout outcome.
-The remainder of this document and the other review documents describe the historical review
-baseline, not the current working tree.
+**Implementation status:** All 37 findings have a recorded disposition: implemented fixes,
+owner-approved simplifications, or verified no-change decisions. The main remediation merged in
+[PR #41](https://github.com/TomHart/lights-inventory/pull/41) as `fce517e`; its main CI and Vercel/Convex
+production deployments passed. Dependency updates in PRs #42–#47 subsequently merged, with main
+verified at `4c5c8e0` and no known dependency vulnerabilities.
 
-| Findings                                                               | Local remediation                                                                                                                                                                                                                                         |
+The owner confirmed the legacy socket/features backfill complete and authorized removal of the
+obsolete migration endpoint and its generated API binding. No migration execution or inventory
+data deletion is needed. This follow-up closes the last deliberate deferral; its PR and main
+checks provide the authoritative status of the cleanup rollout.
+
+The disposition table and verification record below describe the remediation. Sections 1 onward
+and the other review documents preserve the historical review baseline, not current implementation
+instructions. See the root README and AGENTS.md for maintained guidance.
+
+| Findings                                                               | Final disposition                                                                                                                                                                                                                                         |
 | ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | CR-001, CR-011                                                         | Static SPA emits `dist/index.html`; production-build root/deep-link/asset smoke tests and a failing deployment-status smoke job                                                                                                                           |
 | CR-002, CR-005, CR-006                                                 | CAPTCHA enforced inside password authorization; durable hashed per-email attempt and email-send limits; live dev sign-in/sign-up reject missing CAPTCHA                                                                                                   |
@@ -22,39 +30,42 @@ baseline, not the current working tree.
 
 The obsolete `.output`, `.nitro` and `.cache` directories were removed with specific owner
 approval. Tracked Vercel project metadata was removed from Git while preserving the local link.
-Existing classic branch protection requires `test`; the consolidated CI deliberately retains
-that job name, so no repository protection changes were made.
+Classic branch protection requires `test`; the consolidated CI deliberately retains that
+job name. The agent did not change protection settings; the owner's review-policy decision
+is recorded below.
 
-**Outstanding acceptance checks / deliberate deferrals:**
+**Verification record and completed decisions:**
 
-- `convex/migrations.ts` remains by owner choice. A bounded read-only inspection of production
-  `zealous-elephant-547` found 0 bulbs and 6 fixtures, with no legacy fixture fields and no
-  outstanding bulb backfill candidates. This proves current data shape, not historical execution;
-  no production inventory data was changed.
+- The owner confirmed the legacy socket/features backfill complete and authorized deleting
+  `convex/migrations.ts`. The obsolete endpoint and generated API reference are removed.
+  Earlier bounded read-only production inspection found 0 bulbs and 6 fixtures, with no legacy
+  fixture fields or outstanding bulb backfill candidates. No migration was run and no production
+  inventory data was changed for this cleanup.
 - Dev deployment, live negative CAPTCHA checks, all 99 unit/backend tests and all five
-  Chromium tests passed. The authenticated test used an owner-prepared verified dev fixture
-  and removed its own property after testing the hierarchy, status change and export.
-  A subsequent owner-operated sign-up in a normal browser received the real verification email
-  and successfully verified its code. The verified-user guard and CAPTCHA threshold were not
-  weakened. Overall unit coverage is 32.97% lines and 27.1% functions, above the
-  deliberately modest 20% floor; this is not comprehensive UI coverage.
-- With explicit owner approval, the two public repository Actions variables were configured
-  from development frontend settings. The owner separately configured the supported Vercel
-  automation credential as a GitHub secret. Deployment protection and branch protection remain enabled.
-- Formatting-only changes with equivalent compiled syntax were isolated in commit
-  `75f6e9b94e5688672d5fdbf03adce753974082f6`. The repository permits only squash merges;
-  with owner approval, the active `.git-blame-ignore-revs` reference was removed rather than
-  leave a SHA absent from main's ancestry. Merge settings were not changed. Semicolon,
-  trailing-comma and quote normalization were checked through compiled syntax-tree equivalence.
-- PR #41's test, audit and CodeQL checks passed. Its protected Vercel preview smoke check
-  encountered an authentication redirect and HTTP 403. CI now supports the project's official
-  automation credential as a header, restricts destinations and refuses cross-origin redirects;
-  the owner configured `VERCEL_AUTOMATION_BYPASS_SECRET`; a fresh preview must pass.
-- CLI inspection confirms `lights-inventory` is the active project in `tomharts-projects`.
-  The owner clarified the old second-project name; `lights-inventory-4.6` is not present in
-  that team and is not treated as a second active deployment target.
-- The owner approved merging only after checks and preview verification pass, followed by
-  production verification. Local passes and a dev deployment are not a completed rollout.
+  Chromium tests passed during the main remediation. The authenticated test used an owner-prepared
+  verified dev fixture and removed its own property after hierarchy, status-change and export tests.
+  An owner-operated sign-up in a normal browser received the real verification email and verified
+  its code. The verified-user guard and CAPTCHA threshold were not weakened. The later dependency
+  updates passed 99 tests and four anonymous browser tests; authenticated CRUD was not rerun.
+  Overall unit coverage at that checkpoint was 32.97% lines and 27.1% functions, above the modest
+  20% floor; this is not comprehensive UI coverage.
+- The two approved public repository Actions variables and owner-configured Vercel automation
+  secret are in place. The protected preview smoke check passed after CI adopted the supported
+  header, trusted-origin validation and cross-origin redirect rejection. Deployment protection
+  remains enabled; credentials are not placed in URLs or source.
+- Formatting-only changes were isolated and checked through compiled syntax-tree equivalence.
+  The repository permits only squash merges; the owner approved removing the active
+  `.git-blame-ignore-revs` reference rather than leaving a SHA absent from main's ancestry.
+  Merge settings were not changed.
+- PR #41 and dependency PRs #42–#47 passed their applicable test, audit, CodeQL and preview checks
+  before normal squash merges. Their main CI, applicable Convex deployments and Vercel production
+  deployments were verified afterward. Four read-only browser smoke tests passed against the live
+  site, and its frontend was confirmed to use the expected production backend.
+- `lights-inventory` is the active Vercel project in `tomharts-projects`. The owner clarified that
+  `lights-inventory-4.6` is not a second active deployment target.
+- Required `test` protection was preserved. The owner independently set the required approving
+  review count to zero before PR #41 merged. No administrator bypass was used. Future changes still
+  require their own applicable checks, authorized merge and post-merge deployment verification.
 
 **Review date:** 2026-11-05
 **Commit reviewed:** `79659d6` ("Increase E2E server wait time") on `main`

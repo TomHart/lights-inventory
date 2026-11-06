@@ -75,7 +75,6 @@ The authenticated test creates a uniquely named property, room, fixture and bulb
 - `convex/auth.helpers.ts`: verified-user checks and typed ownership traversal. Query helpers return `null`; mutation helpers throw intentional `ConvexError` messages.
 - `convex/validation.ts` and `src/lib/import-data.ts`: shared input bounds and import validation/counting.
 - `convex/rateLimit.ts` and `convex/crons.ts`: durable per-subject counters and bounded stale-row cleanup.
-- `convex/migrations.ts`: retained until the owner confirms the production backfill is complete.
 
 Imports are additive, atomic, limited to 1 MB of UTF-8 JSON and bounded entity counts. Dashboard and search scans stop after 20,000 documents; the dashboard marks partial totals. Neither operation is intended as an unbounded analytics service.
 
@@ -92,6 +91,6 @@ There are four GitHub Actions workflows:
 
 Configure repository variables `VITE_CONVEX_URL` and `VITE_RECAPTCHA_SITE_KEY` for CI builds. The production deployment environment requires `CONVEX_DEPLOY_KEY` and `CONVEX_DEPLOYMENT_PROD`. No Vercel API token is needed by these workflows. Protected previews require the project's supported automation credential as GitHub secret `VERCEL_AUTOMATION_BYPASS_SECRET`; the smoke check sends it only to the trusted project origin and rejects cross-origin redirects. Keep preview protection enabled and never put the credential in a URL or source file. Creating or changing that credential requires a fresh Vercel deployment. CI failures do not automatically roll back unrelated deployments.
 
-Before merging the workflow consolidation, have a repository administrator confirm that required check names match the new jobs. Do not weaken branch protection to make obsolete checks disappear. Publishing, changing repository rules and merging require owner approval. After publication, monitor CI, the configured Vercel project and the Convex deployment, and verify production before calling rollout complete.
+Before merging workflow changes, have a repository administrator confirm that required check names match the jobs. Do not weaken branch protection to make obsolete checks disappear. Publishing, changing repository rules and merging require owner approval. After publication, monitor CI, the configured Vercel project and the Convex deployment, and verify production before calling rollout complete.
 
 See `docs/code-review/` for the original findings and implementation checklist.
