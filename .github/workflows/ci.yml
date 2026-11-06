@@ -50,6 +50,7 @@ jobs:
     timeout-minutes: 5
     env:
       DEPLOYMENT_URL: ${{ github.event.deployment_status.environment_url }}
+      VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
     steps:
       - name: Check deployed root, deep link, and assets
         run: |
@@ -60,18 +61,36 @@ jobs:
           import urllib.request
           base = os.environ['DEPLOYMENT_URL'].rstrip('/')
           parsed = urllib.parse.urlparse(base)
-          if parsed.scheme != 'https' or not (parsed.hostname == 'lights-inventory.vercel.app' or parsed.hostname.endswith('.vercel.app')):
-              raise ValueError('Expected a Vercel HTTPS deployment URL')
+          trusted = parsed.hostname == 'lights-inventory.vercel.app' or re.fullmatch(r'lights-inventory-[a-z0-9-]+-tomharts-projects\.vercel\.app', parsed.hostname or '')
+          if parsed.scheme != 'https' or not trusted or parsed.port not in (None, 443) or parsed.username or parsed.password or parsed.path or parsed.query or parsed.fragment:
+              raise ValueError('Expected a trusted project HTTPS deployment origin')
+          origin = (parsed.scheme, parsed.hostname, parsed.port or 443)
+          class SameOriginRedirect(urllib.request.HTTPRedirectHandler):
+              def redirect_request(self, request, fp, code, message, headers, new_url):
+                  target = urllib.parse.urlparse(new_url)
+                  if (target.scheme, target.hostname, target.port or 443) != origin or target.username or target.password:
+                      raise ValueError('Refusing a cross-origin redirect from the deployment')
+                  return super().redirect_request(request, fp, code, message, headers, new_url)
+          opener = urllib.request.build_opener(SameOriginRedirect())
+          token = os.environ.get('VERCEL_AUTOMATION_BYPASS_SECRET')
+          if token and (not token.isascii() or any(ord(character) < 32 or ord(character) == 127 for character in token)):
+              raise ValueError('Invalid automation credential format')
+          headers = {'x-vercel-protection-bypass': token} if token else {}
+          def fetch(path):
+              target = urllib.parse.urlparse(path)
+              if target.scheme or target.netloc or not path.startswith('/') or path.startswith('//'):
+                  raise ValueError('Expected a same-origin deployment path')
+              return opener.open(urllib.request.Request(base + path, headers=headers), timeout=20)
           for path in ['/', '/properties']:
-              with urllib.request.urlopen(base + path, timeout=20) as response:
+              with fetch(path) as response:
                   html = response.read().decode()
                   assert response.status == 200 and 'id="root"' in html
               assets = re.findall(r'(?:src|href)="(/assets/[^"\s]+)"', html)
               assert assets, 'No built assets found in HTML'
               for asset in assets:
-                  with urllib.request.urlopen(base + asset, timeout=20) as response:
+                  with fetch(asset) as response:
                       assert response.status == 200
                       assert 'text/html' not in response.headers.get('Content-Type', '')
-          with urllib.request.urlopen(base + '/robots.txt', timeout=20) as response:
+          with fetch('/robots.txt') as response:
               assert response.status == 200 and b'User-agent:' in response.read()
           PY

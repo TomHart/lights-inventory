@@ -90,8 +90,8 @@ There are four GitHub Actions workflows:
 - **CodeQL**: pull-request/main analysis and a weekly security scan.
 - **Security Audit**: pull requests and a weekly audit, failing on high/critical advisories. Moderate advisories remain visible and need triage.
 
-Configure repository variables `VITE_CONVEX_URL` and `VITE_RECAPTCHA_SITE_KEY` for CI builds. The production deployment environment requires `CONVEX_DEPLOY_KEY` and `CONVEX_DEPLOYMENT_PROD`. No Vercel token is needed by these workflows, and CI failures do not automatically roll back unrelated deployments.
+Configure repository variables `VITE_CONVEX_URL` and `VITE_RECAPTCHA_SITE_KEY` for CI builds. The production deployment environment requires `CONVEX_DEPLOY_KEY` and `CONVEX_DEPLOYMENT_PROD`. No Vercel API token is needed by these workflows. Protected previews require the project's supported automation credential as GitHub secret `VERCEL_AUTOMATION_BYPASS_SECRET`; the smoke check sends it only to the trusted project origin and rejects cross-origin redirects. Keep preview protection enabled and never put the credential in a URL or source file. Creating or changing that credential requires a fresh Vercel deployment. CI failures do not automatically roll back unrelated deployments.
 
-Before merging the workflow consolidation, have a repository administrator confirm that required check names match the new jobs. Do not weaken branch protection to make obsolete checks disappear. Publishing, changing repository rules and merging require owner approval. After publication, monitor CI, both configured Vercel projects and the Convex deployment, and verify production before calling rollout complete.
+Before merging the workflow consolidation, have a repository administrator confirm that required check names match the new jobs. Do not weaken branch protection to make obsolete checks disappear. Publishing, changing repository rules and merging require owner approval. After publication, monitor CI, the configured Vercel project and the Convex deployment, and verify production before calling rollout complete.
 
 See `docs/code-review/` for the original findings and implementation checklist.

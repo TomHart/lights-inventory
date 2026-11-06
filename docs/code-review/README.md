@@ -1,8 +1,9 @@
 # Repository Code Review — Lights Inventory
 
-**Implementation status (2026-11-05):** Source remediations are implemented locally on
-`fix/code-review-remediation`, using the owner-approved static SPA and deletion choices.
-Work remains local and nothing has been pushed; production has not been repaired by these changes.
+**Implementation status (2026-11-05):** Source remediations are published on
+`fix/code-review-remediation` as draft PR #41, using the owner-approved static SPA and deletion choices.
+At this publication checkpoint the PR is not merged; production rollout remains pending.
+Consult PR #41 and its deployment checks for the subsequent merge and rollout outcome.
 The remainder of this document and the other review documents describe the historical review
 baseline, not the current working tree.
 
@@ -26,21 +27,34 @@ that job name, so no repository protection changes were made.
 
 **Outstanding acceptance checks / deliberate deferrals:**
 
-- `convex/migrations.ts` remains until the owner confirms the production backfill completed.
+- `convex/migrations.ts` remains by owner choice. A bounded read-only inspection of production
+  `zealous-elephant-547` found 0 bulbs and 6 fixtures, with no legacy fixture fields and no
+  outstanding bulb backfill candidates. This proves current data shape, not historical execution;
+  no production inventory data was changed.
 - Dev deployment, live negative CAPTCHA checks, all 99 unit/backend tests and all five
   Chromium tests passed. The authenticated test used an owner-prepared verified dev fixture
   and removed its own property after testing the hierarchy, status change and export.
-  Actual email delivery remains unverified because the test address was fake. The verified-user
-  guard was not weakened. Overall unit coverage is 32.97% lines and 27.1% functions, above the
+  A subsequent owner-operated sign-up in a normal browser received the real verification email
+  and successfully verified its code. The verified-user guard and CAPTCHA threshold were not
+  weakened. Overall unit coverage is 32.97% lines and 27.1% functions, above the
   deliberately modest 20% floor; this is not comprehensive UI coverage.
 - With explicit owner approval, the two public repository Actions variables were configured
-  from development frontend settings. No secrets or branch-protection settings changed.
-- Formatting-only changes with equivalent compiled syntax were isolated in local commit
-  `75f6e9b94e5688672d5fdbf03adce753974082f6`, recorded in `.git-blame-ignore-revs`.
-  Semicolon/trailing-comma and quote normalization means a whitespace-ignoring textual diff
-  is not empty; the compiled JavaScript syntax trees were compared instead.
-- Push/PR, GitHub Actions runs and Vercel preview/production verification await publication
-  approval. Local passes and a dev deployment are not proof of a completed production rollout.
+  from development frontend settings. The owner separately configured the supported Vercel
+  automation credential as a GitHub secret. Deployment protection and branch protection remain enabled.
+- Formatting-only changes with equivalent compiled syntax were isolated in commit
+  `75f6e9b94e5688672d5fdbf03adce753974082f6`. The repository permits only squash merges;
+  with owner approval, the active `.git-blame-ignore-revs` reference was removed rather than
+  leave a SHA absent from main's ancestry. Merge settings were not changed. Semicolon,
+  trailing-comma and quote normalization were checked through compiled syntax-tree equivalence.
+- PR #41's test, audit and CodeQL checks passed. Its protected Vercel preview smoke check
+  encountered an authentication redirect and HTTP 403. CI now supports the project's official
+  automation credential as a header, restricts destinations and refuses cross-origin redirects;
+  the owner configured `VERCEL_AUTOMATION_BYPASS_SECRET`; a fresh preview must pass.
+- CLI inspection confirms `lights-inventory` is the active project in `tomharts-projects`.
+  The owner clarified the old second-project name; `lights-inventory-4.6` is not present in
+  that team and is not treated as a second active deployment target.
+- The owner approved merging only after checks and preview verification pass, followed by
+  production verification. Local passes and a dev deployment are not a completed rollout.
 
 **Review date:** 2026-11-05
 **Commit reviewed:** `79659d6` ("Increase E2E server wait time") on `main`

@@ -6,7 +6,7 @@
 - Respect the requested scope: local-only work must not be pushed. Obtain explicit permission before publishing, deploying production, modifying repository settings, merging or deleting branches.
 - Never bypass hooks or branch protection. Never automatically merge or roll back a deployment because an unrelated CI job failed.
 - Before committing or pushing, run every check below. Fix failures first. Keep unrelated user changes out of commits.
-- After an approved push, monitor every applicable GitHub Actions run, both configured Vercel projects and the Convex deployment. A locally passing build is not a verified deployment.
+- After an approved push, monitor every applicable GitHub Actions run, the configured Vercel project and the Convex deployment. A locally passing build is not a verified deployment.
 - Only merge when explicitly instructed. After an approved merge, verify main's checks, deployment status and production functionality.
 - If a rollout breaks, notify the owner immediately and propose a reviewed revert/fix. Do not perform an unsupervised production rollback.
 - Never commit secrets or authentication state, log verification codes in new code, or run destructive database operations without approval. Use a disposable dev deployment for mutation-based browser tests.
@@ -84,7 +84,7 @@ CI builds require repository variables `VITE_CONVEX_URL` and `VITE_RECAPTCHA_SIT
 Known production targets (for **verification**, not permission to mutate):
 
 - Vercel project `lights-inventory`: https://lights-inventory.vercel.app
-- Vercel project `lights-inventory-4.6`: check its Git integration deployment/status URL.
+- The historical `lights-inventory-4.6` project is not present in the linked team; the owner identified `lights-inventory` as the current name. Verify the active project rather than expecting two deployments.
 - Convex backend: https://zealous-elephant-547.convex.cloud
 
 Use `gh workflow list`, `gh run list`, `gh run view <run-id>` and `gh pr checks` after authorized publication. Report pending deployments/checks honestly; do not call rollout complete before they pass.
