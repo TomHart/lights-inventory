@@ -1,8 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery, useMutation } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
+import { useEffect, useRef, useState } from "react";
 import { api } from "../../convex/_generated/api";
 import type { Doc, Id } from "../../convex/_generated/dataModel";
-import { useState, useEffect, useRef } from "react";
 
 // Type for fixture with enriched fields from the API
 type FixtureWithDetails = Doc<"fixtures"> & {
@@ -11,11 +11,23 @@ type FixtureWithDetails = Doc<"fixtures"> & {
   propertyId: string;
   propertyName: string;
 };
-import { AuthGuard } from "#/components/AuthGuard";
+
+import {
+  ArrowLeft,
+  Bell,
+  Calendar,
+  Clock,
+  Copy,
+  Lightbulb,
+  Pencil,
+  Plus,
+  Trash2,
+  Wrench,
+} from "lucide-react";
+import { toast } from "sonner";
+import { ConfirmDialog } from "#/components/ConfirmDialog";
+import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
-import { Input } from "#/components/ui/input";
-import { Label } from "#/components/ui/label";
-import { Textarea } from "#/components/ui/textarea";
 import {
   Card,
   CardContent,
@@ -23,7 +35,7 @@ import {
   CardHeader,
   CardTitle,
 } from "#/components/ui/card";
-import { Skeleton } from "#/components/ui/skeleton";
+import { Checkbox } from "#/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -32,6 +44,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "#/components/ui/dialog";
+import { Input } from "#/components/ui/input";
+import { Label } from "#/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -39,60 +53,42 @@ import {
   SelectTrigger,
   SelectValue,
 } from "#/components/ui/select";
-import { Badge } from "#/components/ui/badge";
 import { Separator } from "#/components/ui/separator";
+import { Skeleton } from "#/components/ui/skeleton";
+import { Textarea } from "#/components/ui/textarea";
 import {
-  Plus,
-  Lightbulb,
-  Trash2,
-  Pencil,
-  ArrowLeft,
-  Calendar,
-  Clock,
-  Bell,
-  Wrench,
-  Copy,
-} from "lucide-react";
-import { toast } from "sonner";
-import { ConfirmDialog } from "#/components/ConfirmDialog";
-import { Checkbox } from "#/components/ui/checkbox";
-import {
-  BULB_STATUS_LABELS,
   BULB_STATUS_COLORS,
+  BULB_STATUS_LABELS,
   COLOUR_TEMP_LABELS,
+  FEATURE_LABELS,
+  FEATURE_OPTIONS,
   FIXTURE_LOCATION_LABELS,
   SOCKET_TYPE_OPTIONS,
-  FEATURE_OPTIONS,
-  FEATURE_LABELS,
 } from "#/lib/constants";
+import { userMessage } from "#/lib/errors";
 
-export const Route = createFileRoute("/fixture/$fixtureId")({
-  component: FixtureDetailPage,
-  ssr: false,
+export const Route = createFileRoute("/_authed/fixture/$fixtureId")({
+  component: FixtureDetailContent,
+  params: {
+    parse: ({ fixtureId }) => ({ fixtureId: fixtureId as Id<"fixtures"> }),
+    stringify: ({ fixtureId }) => ({ fixtureId }),
+  },
   validateSearch: (search: Record<string, unknown>): { bulbId?: string } => ({
     bulbId: typeof search.bulbId === "string" ? search.bulbId : undefined,
   }),
 });
 
-function FixtureDetailPage() {
-  return (
-    <AuthGuard>
-      <FixtureDetailContent />
-    </AuthGuard>
-  );
-}
-
 function FixtureDetailContent() {
   const { fixtureId } = Route.useParams();
   const { bulbId: highlightBulbId } = Route.useSearch();
   const fixture = useQuery(api.fixtures.get, {
-    id: fixtureId as Id<"fixtures">,
+    id: fixtureId,
   });
   const bulbs = useQuery(api.bulbs.listByFixture, {
-    fixtureId: fixtureId as Id<"fixtures">,
+    fixtureId: fixtureId,
   });
   const maintenanceLogs = useQuery(api.maintenance.listByFixture, {
-    fixtureId: fixtureId as Id<"fixtures">,
+    fixtureId: fixtureId,
   });
   const [createBulbOpen, setCreateBulbOpen] = useState(false);
   const [addLogOpen, setAddLogOpen] = useState(false);
@@ -119,7 +115,7 @@ function FixtureDetailContent() {
         </div>
         <Skeleton className="h-7 w-28 mb-4" />
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-8">
-          {Array.from({ length: 3 }).map((_, i) => (
+          {["first", "second", "third"].map((i) => (
             <Card key={i}>
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
@@ -175,14 +171,16 @@ function FixtureDetailContent() {
       <div className="mb-6">
         <Link
           to="/room/$roomId"
-          params={{ roomId: fixtureData.roomId || "" }}
+          params={{ roomId: fixtureData.roomId }}
           className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4 no-underline"
         >
-          <ArrowLeft className="h-4 w-4" /> Back to {fixtureData.roomName || "Room"}
+          <ArrowLeft className="h-4 w-4" /> Back to{" "}
+          {fixtureData.roomName || "Room"}
         </Link>
         <div>
           <h1 className="text-3xl font-bold">
-            {fixture.name || `${FIXTURE_LOCATION_LABELS[fixture.location] || fixture.location} Fixture`}
+            {fixture.name ||
+              `${FIXTURE_LOCATION_LABELS[fixture.location] || fixture.location} Fixture`}
           </h1>
           <div className="flex gap-2 mt-1 flex-wrap">
             {fixture.name && (
@@ -203,15 +201,13 @@ function FixtureDetailContent() {
       </div>
 
       {/* Bulbs List */}
-      <h2 className="text-xl font-semibold mb-4">
-        Bulbs ({bulbs.length})
-      </h2>
+      <h2 className="text-xl font-semibold mb-4">Bulbs ({bulbs.length})</h2>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-8">
-        {bulbs.map((bulb: any) => (
+        {bulbs.map((bulb: Doc<"bulbs">) => (
           <BulbCard
             key={bulb._id}
             bulb={bulb}
-            fixtureId={fixtureId as Id<"fixtures">}
+            fixtureId={fixtureId}
             highlight={bulb._id === highlightBulbId}
           />
         ))}
@@ -233,7 +229,7 @@ function FixtureDetailContent() {
               </DialogDescription>
             </DialogHeader>
             <CreateBulbForm
-              fixtureId={fixtureId as Id<"fixtures">}
+              fixtureId={fixtureId}
               onSuccess={() => setCreateBulbOpen(false)}
             />
           </DialogContent>
@@ -242,11 +238,9 @@ function FixtureDetailContent() {
 
       {/* Maintenance History */}
       <Separator className="my-8" />
-      <h2 className="text-xl font-semibold mb-4">
-        Maintenance History
-      </h2>
+      <h2 className="text-xl font-semibold mb-4">Maintenance History</h2>
       <div className="space-y-2">
-        {maintenanceLogs && maintenanceLogs.map((log: any) => (
+        {maintenanceLogs?.map((log) => (
           <div
             key={log._id}
             className="flex items-start gap-3 rounded-lg border p-3 text-sm"
@@ -281,7 +275,7 @@ function FixtureDetailContent() {
               </DialogDescription>
             </DialogHeader>
             <AddMaintenanceLogForm
-              fixtureId={fixtureId as Id<"fixtures">}
+              fixtureId={fixtureId}
               onSuccess={() => setAddLogOpen(false)}
             />
           </DialogContent>
@@ -295,7 +289,7 @@ function BulbCard({
   bulb,
   highlight,
 }: {
-  bulb: any;
+  bulb: Doc<"bulbs">;
   fixtureId: Id<"fixtures">;
   highlight?: boolean;
 }) {
@@ -317,7 +311,10 @@ function BulbCard({
   );
 
   return (
-    <Card ref={cardRef} className={highlight ? "ring-2 ring-amber-500 ring-offset-2" : ""}>
+    <Card
+      ref={cardRef}
+      className={highlight ? "ring-2 ring-amber-500 ring-offset-2" : ""}
+    >
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div>
@@ -328,13 +325,17 @@ function BulbCard({
                 bulb.colourTemperature}
             </CardTitle>
             <CardDescription className="mt-1 flex flex-wrap gap-1">
-              <Badge variant="outline" className="text-xs">{bulb.socketType}</Badge>
+              <Badge variant="outline" className="text-xs">
+                {bulb.socketType}
+              </Badge>
               {bulb.features?.map((f: string) => (
                 <Badge key={f} variant="secondary" className="text-xs">
                   {FEATURE_LABELS[f] || f}
                 </Badge>
               ))}
-              <span className="text-xs">{bulb.productName || "Unknown product"}</span>
+              <span className="text-xs">
+                {bulb.productName || "Unknown product"}
+              </span>
             </CardDescription>
           </div>
           <Badge className={BULB_STATUS_COLORS[bulb.status]}>
@@ -433,10 +434,7 @@ function BulbCard({
                   Update the details for this bulb.
                 </DialogDescription>
               </DialogHeader>
-              <EditBulbForm
-                bulb={bulb}
-                onSuccess={() => setEditOpen(false)}
-              />
+              <EditBulbForm bulb={bulb} onSuccess={() => setEditOpen(false)} />
             </DialogContent>
           </Dialog>
           <ConfirmDialog
@@ -490,20 +488,21 @@ function CreateBulbForm({
     try {
       await create({
         fixtureId,
-        socketType: socketType as "E26" | "E12" | "E17" | "E39" | "GU10" | "GU24" | "MR16" | "G4" | "G9" | "T8" | "T5" | "PAR20" | "PAR30" | "PAR38" | "other",
+        socketType: socketType as Doc<"bulbs">["socketType"],
         features,
         wattage: Number(wattage),
-        colourTemperature: colourTemperature as "warm" | "cool" | "daylight",
-        status: status as "working" | "flickering" | "dead",
+        colourTemperature:
+          colourTemperature as Doc<"bulbs">["colourTemperature"],
+        status: status as Doc<"bulbs">["status"],
         installDate: new Date(installDate).getTime(),
-        notes: notes || undefined,
-        productName: productName || undefined,
-        productUrl: productUrl || undefined,
+        notes,
+        productName,
+        productUrl,
       });
       toast.success("Bulb added");
       onSuccess();
-    } catch {
-      toast.error("Failed to add bulb");
+    } catch (err) {
+      toast.error(userMessage(err, "Failed to add bulb"));
     } finally {
       setLoading(false);
     }
@@ -514,7 +513,10 @@ function CreateBulbForm({
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label>Socket Type</Label>
-          <Select value={socketType} onValueChange={setSocketType}>
+          <Select
+            value={socketType}
+            onValueChange={(value) => setSocketType(value as typeof socketType)}
+          >
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
@@ -543,7 +545,9 @@ function CreateBulbForm({
           <Label>Colour Temperature</Label>
           <Select
             value={colourTemperature}
-            onValueChange={setColourTemperature}
+            onValueChange={(value) =>
+              setColourTemperature(value as typeof colourTemperature)
+            }
           >
             <SelectTrigger>
               <SelectValue />
@@ -641,7 +645,7 @@ function EditBulbForm({
   bulb,
   onSuccess,
 }: {
-  bulb: any;
+  bulb: Doc<"bulbs">;
   onSuccess: () => void;
 }) {
   const update = useMutation(api.bulbs.update);
@@ -665,19 +669,20 @@ function EditBulbForm({
     try {
       await update({
         id: bulb._id,
-        socketType: socketType as "E26" | "E12" | "E17" | "E39" | "GU10" | "GU24" | "MR16" | "G4" | "G9" | "T8" | "T5" | "PAR20" | "PAR30" | "PAR38" | "other",
+        socketType: socketType as Doc<"bulbs">["socketType"],
         features,
         wattage: Number(wattage),
-        colourTemperature: colourTemperature as "warm" | "cool" | "daylight",
+        colourTemperature:
+          colourTemperature as Doc<"bulbs">["colourTemperature"],
         installDate: new Date(installDate).getTime(),
-        notes: notes || undefined,
-        productName: productName || undefined,
-        productUrl: productUrl || undefined,
+        notes,
+        productName,
+        productUrl,
       });
       toast.success("Bulb updated");
       onSuccess();
-    } catch {
-      toast.error("Failed to update bulb");
+    } catch (err) {
+      toast.error(userMessage(err, "Failed to update bulb"));
     } finally {
       setLoading(false);
     }
@@ -688,7 +693,10 @@ function EditBulbForm({
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label>Socket Type</Label>
-          <Select value={socketType} onValueChange={setSocketType}>
+          <Select
+            value={socketType}
+            onValueChange={(value) => setSocketType(value as typeof socketType)}
+          >
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
@@ -717,7 +725,9 @@ function EditBulbForm({
           <Label>Colour Temperature</Label>
           <Select
             value={colourTemperature}
-            onValueChange={setColourTemperature}
+            onValueChange={(value) =>
+              setColourTemperature(value as typeof colourTemperature)
+            }
           >
             <SelectTrigger>
               <SelectValue />
@@ -784,10 +794,7 @@ function EditBulbForm({
       </div>
       <div className="space-y-2">
         <Label>Notes</Label>
-        <Textarea
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-        />
+        <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} />
       </div>
       <Button type="submit" className="w-full" disabled={loading}>
         {loading ? "Saving..." : "Save Changes"}
@@ -819,8 +826,8 @@ function ReminderForm({
       });
       toast.success("Reminder set");
       onSuccess();
-    } catch {
-      toast.error("Failed to set reminder");
+    } catch (err) {
+      toast.error(userMessage(err, "Failed to set reminder"));
     } finally {
       setLoading(false);
     }
@@ -872,13 +879,13 @@ function AddMaintenanceLogForm({
       await createLog({
         fixtureId,
         action,
-        notes: notes || undefined,
+        notes,
         date: new Date(date).getTime(),
       });
       toast.success("Maintenance log added");
       onSuccess();
-    } catch {
-      toast.error("Failed to add log");
+    } catch (err) {
+      toast.error(userMessage(err, "Failed to add log"));
     } finally {
       setLoading(false);
     }
@@ -906,10 +913,7 @@ function AddMaintenanceLogForm({
       </div>
       <div className="space-y-2">
         <Label>Notes (optional)</Label>
-        <Textarea
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-        />
+        <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} />
       </div>
       <Button type="submit" className="w-full" disabled={loading}>
         {loading ? "Adding..." : "Add Log Entry"}

@@ -1,18 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery, useMutation } from "convex/react";
-import { api } from "../../convex/_generated/api";
+import { useMutation, useQuery } from "convex/react";
+import { Filter, Lightbulb, Search, Zap } from "lucide-react";
 import { useState } from "react";
-import { AuthGuard } from "#/components/AuthGuard";
+import { toast } from "sonner";
+import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "#/components/ui/card";
+import { Checkbox } from "#/components/ui/checkbox";
 import { Input } from "#/components/ui/input";
 import { Label } from "#/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "#/components/ui/card";
-import { Skeleton } from "#/components/ui/skeleton";
 import {
   Select,
   SelectContent,
@@ -20,37 +16,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "#/components/ui/select";
-import { Badge } from "#/components/ui/badge";
-import { Checkbox } from "#/components/ui/checkbox";
 import { Separator } from "#/components/ui/separator";
+import { Skeleton } from "#/components/ui/skeleton";
 import {
-  Search,
-  Lightbulb,
-  Filter,
-  Zap,
-} from "lucide-react";
-import { toast } from "sonner";
-import {
-  SOCKET_TYPE_OPTIONS,
-  BULB_STATUS_LABELS,
   BULB_STATUS_COLORS,
+  BULB_STATUS_LABELS,
   COLOUR_TEMP_LABELS,
   FIXTURE_LOCATION_LABELS,
   ROOM_TYPE_LABELS,
+  SOCKET_TYPE_OPTIONS,
 } from "#/lib/constants";
+import { userMessage } from "#/lib/errors";
+import { api } from "../../convex/_generated/api";
+import type { Id } from "../../convex/_generated/dataModel";
 
-export const Route = createFileRoute("/search")({
-  component: SearchPage,
-  ssr: false,
+export const Route = createFileRoute("/_authed/search")({
+  component: SearchContent,
 });
-
-function SearchPage() {
-  return (
-    <AuthGuard>
-      <SearchContent />
-    </AuthGuard>
-  );
-}
 
 function SearchContent() {
   const [socketType, setSocketType] = useState<string>("");
@@ -59,7 +41,7 @@ function SearchContent() {
   const [isSmart, setIsSmart] = useState<string>("");
   const [status, setStatus] = useState<string>("");
   const [colourTemperature, setColourTemperature] = useState<string>("");
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [selectedIds, setSelectedIds] = useState<Set<Id<"bulbs">>>(new Set());
 
   const results = useQuery(api.search.searchAll, {
     socketType: socketType || undefined,
@@ -83,7 +65,7 @@ function SearchContent() {
     setSelectedIds(new Set());
   };
 
-  const toggleSelect = (id: string) => {
+  const toggleSelect = (id: Id<"bulbs">) => {
     setSelectedIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
@@ -101,17 +83,19 @@ function SearchContent() {
     }
   };
 
-  const handleBulkStatus = async (newStatus: "working" | "flickering" | "dead") => {
+  const handleBulkStatus = async (
+    newStatus: "working" | "flickering" | "dead",
+  ) => {
     if (selectedIds.size === 0) return;
     try {
       await bulkUpdateStatus({
-        ids: Array.from(selectedIds) as unknown as Array<import("../../convex/_generated/dataModel").Id<"bulbs">>,
+        ids: Array.from(selectedIds),
         status: newStatus,
       });
       toast.success(`Updated ${selectedIds.size} bulbs to ${newStatus}`);
       setSelectedIds(new Set());
-    } catch {
-      toast.error("Failed to update");
+    } catch (err) {
+      toast.error(userMessage(err, "Failed to update"));
     }
   };
 
@@ -232,9 +216,7 @@ function SearchContent() {
                 {selectedIds.size} selected
               </span>
               <Separator orientation="vertical" className="h-6" />
-              <span className="text-sm text-muted-foreground">
-                Set status:
-              </span>
+              <span className="text-sm text-muted-foreground">Set status:</span>
               <Button
                 variant="outline"
                 size="sm"
@@ -264,8 +246,11 @@ function SearchContent() {
       {/* Results */}
       {results === undefined ? (
         <div className="space-y-2">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="flex items-center gap-3 rounded-lg border p-3">
+          {["first", "second", "third", "fourth", "fifth"].map((i) => (
+            <div
+              key={i}
+              className="flex items-center gap-3 rounded-lg border p-3"
+            >
               <Skeleton className="h-4 w-4" />
               <Skeleton className="h-5 w-5 rounded" />
               <div className="flex-1">
@@ -305,7 +290,7 @@ function SearchContent() {
           </div>
 
           <div className="space-y-2">
-            {results.map((result: any) => (
+            {results.map((result) => (
               <div
                 key={result.bulbId}
                 className={`flex items-center gap-3 rounded-lg border p-3 transition-colors ${
@@ -344,10 +329,11 @@ function SearchContent() {
                     )}
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">
-                    {result.propertyName} &rarr;{" "}
-                    {result.roomName} (
-                    {ROOM_TYPE_LABELS[result.roomType] || result.roomType}) &rarr;{" "}
-                    {result.fixtureName || FIXTURE_LOCATION_LABELS[result.fixtureLocation] ||
+                    {result.propertyName} &rarr; {result.roomName} (
+                    {ROOM_TYPE_LABELS[result.roomType] || result.roomType})
+                    &rarr;{" "}
+                    {result.fixtureName ||
+                      FIXTURE_LOCATION_LABELS[result.fixtureLocation] ||
                       result.fixtureLocation}
                     {result.productName && ` &middot; ${result.productName}`}
                   </p>

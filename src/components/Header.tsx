@@ -1,19 +1,19 @@
+import { useAuthActions } from "@convex-dev/auth/react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useConvexAuth } from "convex/react";
-import ThemeToggle from "./ThemeToggle";
-import { useAuthActions } from "@convex-dev/auth/react";
-import { Button } from "#/components/ui/button";
 import {
-  Lightbulb,
-  Home,
-  Search,
-  Package,
   ClipboardList,
+  Home,
+  Lightbulb,
   LogOut,
   Menu,
+  Package,
+  Search,
   X,
 } from "lucide-react";
 import { useState } from "react";
+import { Button } from "#/components/ui/button";
+import ThemeToggle from "./ThemeToggle";
 
 export default function Header() {
   const { isAuthenticated, isLoading } = useConvexAuth();
@@ -38,10 +38,15 @@ export default function Header() {
             </div>
             {/* Mobile hamburger */}
             <button
+              type="button"
               className="md:hidden p-2 text-muted-foreground"
               onClick={() => setMobileOpen(!mobileOpen)}
             >
-              {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              {mobileOpen ? (
+                <X className="h-5 w-5" />
+              ) : (
+                <Menu className="h-5 w-5" />
+              )}
             </button>
           </>
         )}
@@ -66,7 +71,13 @@ export default function Header() {
   );
 }
 
-function NavLinks({ mobile, onNavigate }: { mobile?: boolean; onNavigate?: () => void }) {
+function NavLinks({
+  mobile,
+  onNavigate,
+}: {
+  mobile?: boolean;
+  onNavigate?: () => void;
+}) {
   const linkClass = mobile
     ? "flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent no-underline"
     : "flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent no-underline";

@@ -1,11 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery, useMutation } from "convex/react";
-import { api } from "../../convex/_generated/api";
+import { useMutation, useQuery } from "convex/react";
+import {
+  AlertTriangle,
+  DoorOpen,
+  Lightbulb,
+  Pencil,
+  Plus,
+  Trash2,
+} from "lucide-react";
 import { useState } from "react";
-import { AuthGuard } from "#/components/AuthGuard";
+import { toast } from "sonner";
+import { ConfirmDialog } from "#/components/ConfirmDialog";
 import { Button } from "#/components/ui/button";
-import { Input } from "#/components/ui/input";
-import { Label } from "#/components/ui/label";
 import {
   Card,
   CardContent,
@@ -13,7 +19,6 @@ import {
   CardHeader,
   CardTitle,
 } from "#/components/ui/card";
-import { Skeleton } from "#/components/ui/skeleton";
 import {
   Dialog,
   DialogContent,
@@ -22,29 +27,16 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "#/components/ui/dialog";
-import {
-  Plus,
-  DoorOpen,
-  Lightbulb,
-  AlertTriangle,
-  Trash2,
-  Pencil,
-} from "lucide-react";
-import { toast } from "sonner";
-import { ConfirmDialog } from "#/components/ConfirmDialog";
+import { Input } from "#/components/ui/input";
+import { Label } from "#/components/ui/label";
+import { Skeleton } from "#/components/ui/skeleton";
+import { userMessage } from "#/lib/errors";
+import { api } from "../../convex/_generated/api";
+import type { Doc } from "../../convex/_generated/dataModel";
 
-export const Route = createFileRoute("/properties")({
-  component: PropertiesPage,
-  ssr: false,
+export const Route = createFileRoute("/_authed/properties")({
+  component: PropertiesContent,
 });
-
-function PropertiesPage() {
-  return (
-    <AuthGuard>
-      <PropertiesContent />
-    </AuthGuard>
-  );
-}
 
 function PropertiesContent() {
   const properties = useQuery(api.properties.list);
@@ -61,7 +53,7 @@ function PropertiesContent() {
           <Skeleton className="h-10 w-36" />
         </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 3 }).map((_, i) => (
+          {["first", "second", "third"].map((i) => (
             <Card key={i}>
               <CardHeader className="pb-3">
                 <Skeleton className="h-5 w-40 mb-1" />
@@ -69,7 +61,7 @@ function PropertiesContent() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-3 gap-2 text-center text-sm mb-4">
-                  {Array.from({ length: 3 }).map((_, j) => (
+                  {["rooms", "fixtures", "bulbs"].map((j) => (
                     <div key={j} className="rounded-lg bg-muted p-2">
                       <Skeleton className="mx-auto h-4 w-4 mb-1" />
                       <Skeleton className="mx-auto h-5 w-6 mb-1" />
@@ -96,7 +88,7 @@ function PropertiesContent() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {properties.map((property: any) => (
+        {properties.map((property: Doc<"properties">) => (
           <PropertyCard key={property._id} property={property} />
         ))}
         <Dialog open={createOpen} onOpenChange={setCreateOpen}>
@@ -124,7 +116,7 @@ function PropertiesContent() {
   );
 }
 
-function PropertyCard({ property }: { property: any }) {
+function PropertyCard({ property }: { property: Doc<"properties"> }) {
   const stats = useQuery(api.properties.getWithStats, { id: property._id });
   const removeProperty = useMutation(api.properties.remove);
   const [editOpen, setEditOpen] = useState(false);
@@ -142,7 +134,12 @@ function PropertyCard({ property }: { property: any }) {
           <div className="flex gap-1">
             <Dialog open={editOpen} onOpenChange={setEditOpen}>
               <DialogTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
+                <Button
+                  aria-label="Edit property"
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                >
                   <Pencil className="h-4 w-4" />
                 </Button>
               </DialogTrigger>
@@ -165,6 +162,7 @@ function PropertyCard({ property }: { property: any }) {
                   variant="ghost"
                   size="icon"
                   className="h-8 w-8 text-destructive hover:text-destructive"
+                  aria-label="Delete property"
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
@@ -226,8 +224,8 @@ function CreatePropertyForm({ onSuccess }: { onSuccess: () => void }) {
       await create({ name });
       toast.success("Property created");
       onSuccess();
-    } catch {
-      toast.error("Failed to create property");
+    } catch (err) {
+      toast.error(userMessage(err, "Failed to create property"));
     } finally {
       setLoading(false);
     }
@@ -256,7 +254,7 @@ function EditPropertyForm({
   property,
   onSuccess,
 }: {
-  property: any;
+  property: Doc<"properties">;
   onSuccess: () => void;
 }) {
   const update = useMutation(api.properties.update);
@@ -270,8 +268,8 @@ function EditPropertyForm({
       await update({ id: property._id, name });
       toast.success("Property updated");
       onSuccess();
-    } catch {
-      toast.error("Failed to update property");
+    } catch (err) {
+      toast.error(userMessage(err, "Failed to update property"));
     } finally {
       setLoading(false);
     }

@@ -1,18 +1,27 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery, useMutation } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
+import { useState } from "react";
 import { api } from "../../convex/_generated/api";
 import type { Doc, Id } from "../../convex/_generated/dataModel";
-import { useState } from "react";
 
 // Type for room with enriched fields from the API
 type RoomWithDetails = Doc<"rooms"> & {
   propertyName: string;
 };
-import { AuthGuard } from "#/components/AuthGuard";
+
+import type { FunctionReturnType } from "convex/server";
+import {
+  AlertTriangle,
+  ArrowLeft,
+  Copy,
+  Lightbulb,
+  Pencil,
+  Plus,
+  Trash2,
+} from "lucide-react";
+import { toast } from "sonner";
+import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
-import { Input } from "#/components/ui/input";
-import { Label } from "#/components/ui/label";
-import { Textarea } from "#/components/ui/textarea";
 import {
   Card,
   CardContent,
@@ -20,7 +29,6 @@ import {
   CardHeader,
   CardTitle,
 } from "#/components/ui/card";
-import { Skeleton } from "#/components/ui/skeleton";
 import {
   Dialog,
   DialogContent,
@@ -29,6 +37,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "#/components/ui/dialog";
+import { Input } from "#/components/ui/input";
+import { Label } from "#/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -36,41 +46,30 @@ import {
   SelectTrigger,
   SelectValue,
 } from "#/components/ui/select";
-import { Badge } from "#/components/ui/badge";
-import {
-  Plus,
-  Lightbulb,
-  AlertTriangle,
-  Trash2,
-  Pencil,
-  ArrowLeft,
-  Copy,
-} from "lucide-react";
-import { toast } from "sonner";
+import { Skeleton } from "#/components/ui/skeleton";
+import { Textarea } from "#/components/ui/textarea";
+import { userMessage } from "#/lib/errors";
+
+type FixtureWithStats = FunctionReturnType<
+  typeof api.fixtures.listByRoom
+>[number];
+
 import { ConfirmDialog } from "#/components/ConfirmDialog";
-import {
-  FIXTURE_LOCATION_LABELS,
-  ROOM_TYPE_LABELS,
-} from "#/lib/constants";
+import { FIXTURE_LOCATION_LABELS, ROOM_TYPE_LABELS } from "#/lib/constants";
 
-export const Route = createFileRoute("/room/$roomId")({
-  component: RoomDetailPage,
-  ssr: false,
+export const Route = createFileRoute("/_authed/room/$roomId")({
+  component: RoomDetailContent,
+  params: {
+    parse: ({ roomId }) => ({ roomId: roomId as Id<"rooms"> }),
+    stringify: ({ roomId }) => ({ roomId }),
+  },
 });
-
-function RoomDetailPage() {
-  return (
-    <AuthGuard>
-      <RoomDetailContent />
-    </AuthGuard>
-  );
-}
 
 function RoomDetailContent() {
   const { roomId } = Route.useParams();
-  const room = useQuery(api.rooms.get, { id: roomId as Id<"rooms"> });
+  const room = useQuery(api.rooms.get, { id: roomId });
   const fixtures = useQuery(api.fixtures.listByRoom, {
-    roomId: roomId as Id<"rooms">,
+    roomId: roomId,
   });
   const [createOpen, setCreateOpen] = useState(false);
 
@@ -91,7 +90,7 @@ function RoomDetailContent() {
           </div>
         </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 3 }).map((_, i) => (
+          {["first", "second", "third"].map((i) => (
             <Card key={i}>
               <CardHeader className="pb-3">
                 <Skeleton className="h-5 w-32 mb-1" />
@@ -130,7 +129,7 @@ function RoomDetailContent() {
       <div className="mb-6">
         <Link
           to="/property/$propertyId"
-          params={{ propertyId: (room as RoomWithDetails | null)?.propertyId || "" }}
+          params={{ propertyId: room.propertyId }}
           className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4 no-underline"
         >
           <ArrowLeft className="h-4 w-4" /> Back to{" "}
@@ -152,7 +151,7 @@ function RoomDetailContent() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {fixtures.map((fixture: any) => (
+        {fixtures.map((fixture: FixtureWithStats) => (
           <FixtureCard key={fixture._id} fixture={fixture} />
         ))}
         <Dialog open={createOpen} onOpenChange={setCreateOpen}>
@@ -173,7 +172,7 @@ function RoomDetailContent() {
               </DialogDescription>
             </DialogHeader>
             <CreateFixtureForm
-              roomId={roomId as Id<"rooms">}
+              roomId={roomId}
               onSuccess={() => setCreateOpen(false)}
             />
           </DialogContent>
@@ -183,7 +182,7 @@ function RoomDetailContent() {
   );
 }
 
-function FixtureCard({ fixture }: { fixture: any }) {
+function FixtureCard({ fixture }: { fixture: FixtureWithStats }) {
   const removeFixture = useMutation(api.fixtures.remove);
   const duplicateFixture = useMutation(api.fixtures.duplicate);
   const [editOpen, setEditOpen] = useState(false);
@@ -194,12 +193,15 @@ function FixtureCard({ fixture }: { fixture: any }) {
         <div className="flex items-start justify-between">
           <div>
             <CardTitle className="text-lg">
-              {fixture.name || FIXTURE_LOCATION_LABELS[fixture.location] || fixture.location}
+              {fixture.name ||
+                FIXTURE_LOCATION_LABELS[fixture.location] ||
+                fixture.location}
             </CardTitle>
             <CardDescription className="flex flex-wrap gap-1 mt-1">
               {fixture.name && (
                 <Badge variant="outline">
-                  {FIXTURE_LOCATION_LABELS[fixture.location] || fixture.location}
+                  {FIXTURE_LOCATION_LABELS[fixture.location] ||
+                    fixture.location}
                 </Badge>
               )}
             </CardDescription>
@@ -310,13 +312,13 @@ function CreateFixtureForm({
       await create({
         roomId,
         name: name || undefined,
-        location: location as "ceiling" | "wall" | "floor" | "table" | "desk" | "under_cabinet" | "recessed" | "track" | "pendant" | "chandelier" | "sconce" | "outdoor" | "other",
+        location: location as FixtureWithStats["location"],
         notes: notes || undefined,
       });
       toast.success("Fixture created");
       onSuccess();
-    } catch {
-      toast.error("Failed to create fixture");
+    } catch (err) {
+      toast.error(userMessage(err, "Failed to create fixture"));
     } finally {
       setLoading(false);
     }
@@ -334,7 +336,10 @@ function CreateFixtureForm({
       </div>
       <div className="space-y-2">
         <Label>Location</Label>
-        <Select value={location} onValueChange={setLocation}>
+        <Select
+          value={location}
+          onValueChange={(value) => setLocation(value as typeof location)}
+        >
           <SelectTrigger>
             <SelectValue placeholder="Select location" />
           </SelectTrigger>
@@ -355,11 +360,7 @@ function CreateFixtureForm({
           onChange={(e) => setNotes(e.target.value)}
         />
       </div>
-      <Button
-        type="submit"
-        className="w-full"
-        disabled={loading || !location}
-      >
+      <Button type="submit" className="w-full" disabled={loading || !location}>
         {loading ? "Creating..." : "Create Fixture"}
       </Button>
     </form>
@@ -370,7 +371,7 @@ function EditFixtureForm({
   fixture,
   onSuccess,
 }: {
-  fixture: any;
+  fixture: FixtureWithStats;
   onSuccess: () => void;
 }) {
   const update = useMutation(api.fixtures.update);
@@ -391,8 +392,8 @@ function EditFixtureForm({
       });
       toast.success("Fixture updated");
       onSuccess();
-    } catch {
-      toast.error("Failed to update fixture");
+    } catch (err) {
+      toast.error(userMessage(err, "Failed to update fixture"));
     } finally {
       setLoading(false);
     }
@@ -410,7 +411,10 @@ function EditFixtureForm({
       </div>
       <div className="space-y-2">
         <Label>Location</Label>
-        <Select value={location} onValueChange={setLocation}>
+        <Select
+          value={location}
+          onValueChange={(value) => setLocation(value as typeof location)}
+        >
           <SelectTrigger>
             <SelectValue />
           </SelectTrigger>
@@ -425,10 +429,7 @@ function EditFixtureForm({
       </div>
       <div className="space-y-2">
         <Label>Notes</Label>
-        <Textarea
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-        />
+        <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} />
       </div>
       <Button type="submit" className="w-full" disabled={loading}>
         {loading ? "Saving..." : "Save Changes"}

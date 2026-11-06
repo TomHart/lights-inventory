@@ -10,6 +10,7 @@
 
 import type * as auth from "../auth.js";
 import type * as bulbs from "../bulbs.js";
+import type * as crons from "../crons.js";
 import type * as dataTransfer from "../dataTransfer.js";
 import type * as fixtures from "../fixtures.js";
 import type * as http from "../http.js";
@@ -33,6 +34,7 @@ import type {
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   bulbs: typeof bulbs;
+  crons: typeof crons;
   dataTransfer: typeof dataTransfer;
   fixtures: typeof fixtures;
   http: typeof http;

@@ -1,19 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery, useMutation } from "convex/react";
-import { api } from "../../convex/_generated/api";
+import { useMutation, useQuery } from "convex/react";
+import { Minus, Pencil, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { AuthGuard } from "#/components/AuthGuard";
+import { toast } from "sonner";
+import { ConfirmDialog } from "#/components/ConfirmDialog";
+import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
-import { Input } from "#/components/ui/input";
-import { Label } from "#/components/ui/label";
-import { Textarea } from "#/components/ui/textarea";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "#/components/ui/card";
-import { Skeleton } from "#/components/ui/skeleton";
+import { Card, CardContent, CardHeader, CardTitle } from "#/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -22,6 +15,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "#/components/ui/dialog";
+import { Input } from "#/components/ui/input";
+import { Label } from "#/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -29,32 +24,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "#/components/ui/select";
-import { Badge } from "#/components/ui/badge";
-import {
-  Plus,
-  Minus,
-  Trash2,
-  Pencil,
-} from "lucide-react";
-import { toast } from "sonner";
-import { ConfirmDialog } from "#/components/ConfirmDialog";
-import {
-  SOCKET_TYPE_OPTIONS,
-  COLOUR_TEMP_LABELS,
-} from "#/lib/constants";
+import { Skeleton } from "#/components/ui/skeleton";
+import { Textarea } from "#/components/ui/textarea";
+import { COLOUR_TEMP_LABELS, SOCKET_TYPE_OPTIONS } from "#/lib/constants";
+import { userMessage } from "#/lib/errors";
+import { api } from "../../convex/_generated/api";
+import type { Doc } from "../../convex/_generated/dataModel";
 
-export const Route = createFileRoute("/inventory")({
-  component: InventoryPage,
-  ssr: false,
+export const Route = createFileRoute("/_authed/inventory")({
+  component: InventoryContent,
 });
-
-function InventoryPage() {
-  return (
-    <AuthGuard>
-      <InventoryContent />
-    </AuthGuard>
-  );
-}
 
 function InventoryContent() {
   const spares = useQuery(api.inventory.list);
@@ -71,7 +50,7 @@ function InventoryContent() {
           <Skeleton className="h-10 w-32" />
         </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 3 }).map((_, i) => (
+          {["first", "second", "third"].map((i) => (
             <Card key={i}>
               <CardHeader className="pb-3">
                 <Skeleton className="h-5 w-32 mb-1" />
@@ -95,7 +74,7 @@ function InventoryContent() {
     );
   }
 
-  const totalCount = spares.reduce((sum: number, s: any) => sum + s.quantity, 0);
+  const totalCount = spares.reduce((sum, s) => sum + s.quantity, 0);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
@@ -107,7 +86,7 @@ function InventoryContent() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {spares.map((spare: any) => (
+        {spares.map((spare: Doc<"spareBulbs">) => (
           <SpareCard key={spare._id} spare={spare} />
         ))}
         <Dialog open={createOpen} onOpenChange={setCreateOpen}>
@@ -135,7 +114,7 @@ function InventoryContent() {
   );
 }
 
-function SpareCard({ spare }: { spare: any }) {
+function SpareCard({ spare }: { spare: Doc<"spareBulbs"> }) {
   const adjustQuantity = useMutation(api.inventory.adjustQuantity);
   const removeSpare = useMutation(api.inventory.remove);
   const [editOpen, setEditOpen] = useState(false);
@@ -266,18 +245,19 @@ function CreateSpareForm({ onSuccess }: { onSuccess: () => void }) {
     setLoading(true);
     try {
       await create({
-        socketType: socketType as "E26" | "E12" | "E17" | "E39" | "GU10" | "GU24" | "MR16" | "G4" | "G9" | "T8" | "T5" | "PAR20" | "PAR30" | "PAR38" | "other",
+        socketType: socketType as Doc<"spareBulbs">["socketType"],
         wattage: Number(wattage),
-        colourTemperature: colourTemperature as "warm" | "cool" | "daylight",
+        colourTemperature:
+          colourTemperature as Doc<"spareBulbs">["colourTemperature"],
         quantity: Number(quantity),
-        productName: productName || undefined,
-        productUrl: productUrl || undefined,
-        notes: notes || undefined,
+        productName,
+        productUrl,
+        notes,
       });
       toast.success("Spare added");
       onSuccess();
-    } catch {
-      toast.error("Failed to add spare");
+    } catch (err) {
+      toast.error(userMessage(err, "Failed to add spare"));
     } finally {
       setLoading(false);
     }
@@ -288,7 +268,10 @@ function CreateSpareForm({ onSuccess }: { onSuccess: () => void }) {
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label>Socket Type</Label>
-          <Select value={socketType} onValueChange={setSocketType}>
+          <Select
+            value={socketType}
+            onValueChange={(value) => setSocketType(value as typeof socketType)}
+          >
             <SelectTrigger>
               <SelectValue placeholder="Select type" />
             </SelectTrigger>
@@ -317,7 +300,9 @@ function CreateSpareForm({ onSuccess }: { onSuccess: () => void }) {
           <Label>Colour Temperature</Label>
           <Select
             value={colourTemperature}
-            onValueChange={setColourTemperature}
+            onValueChange={(value) =>
+              setColourTemperature(value as typeof colourTemperature)
+            }
           >
             <SelectTrigger>
               <SelectValue />
@@ -361,10 +346,7 @@ function CreateSpareForm({ onSuccess }: { onSuccess: () => void }) {
       </div>
       <div className="space-y-2">
         <Label>Notes (optional)</Label>
-        <Textarea
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-        />
+        <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} />
       </div>
       <Button
         type="submit"
@@ -381,7 +363,7 @@ function EditSpareForm({
   spare,
   onSuccess,
 }: {
-  spare: any;
+  spare: Doc<"spareBulbs">;
   onSuccess: () => void;
 }) {
   const update = useMutation(api.inventory.update);
@@ -402,18 +384,19 @@ function EditSpareForm({
     try {
       await update({
         id: spare._id,
-        socketType: socketType as "E26" | "E12" | "E17" | "E39" | "GU10" | "GU24" | "MR16" | "G4" | "G9" | "T8" | "T5" | "PAR20" | "PAR30" | "PAR38" | "other",
+        socketType: socketType as Doc<"spareBulbs">["socketType"],
         wattage: Number(wattage),
-        colourTemperature: colourTemperature as "warm" | "cool" | "daylight",
+        colourTemperature:
+          colourTemperature as Doc<"spareBulbs">["colourTemperature"],
         quantity: Number(quantity),
-        productName: productName || undefined,
-        productUrl: productUrl || undefined,
-        notes: notes || undefined,
+        productName,
+        productUrl,
+        notes,
       });
       toast.success("Spare updated");
       onSuccess();
-    } catch {
-      toast.error("Failed to update");
+    } catch (err) {
+      toast.error(userMessage(err, "Failed to update"));
     } finally {
       setLoading(false);
     }
@@ -424,7 +407,10 @@ function EditSpareForm({
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label>Socket Type</Label>
-          <Select value={socketType} onValueChange={setSocketType}>
+          <Select
+            value={socketType}
+            onValueChange={(value) => setSocketType(value as typeof socketType)}
+          >
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
@@ -452,7 +438,9 @@ function EditSpareForm({
           <Label>Colour Temperature</Label>
           <Select
             value={colourTemperature}
-            onValueChange={setColourTemperature}
+            onValueChange={(value) =>
+              setColourTemperature(value as typeof colourTemperature)
+            }
           >
             <SelectTrigger>
               <SelectValue />
@@ -494,10 +482,7 @@ function EditSpareForm({
       </div>
       <div className="space-y-2">
         <Label>Notes</Label>
-        <Textarea
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-        />
+        <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} />
       </div>
       <Button type="submit" className="w-full" disabled={loading}>
         {loading ? "Saving..." : "Save Changes"}

@@ -1,6 +1,7 @@
-import { getVerifiedUserId } from "./auth.helpers";
+import { ConvexError, v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { v } from "convex/values";
+import { getVerifiedUserId, requireBulbOwner } from "./auth.helpers";
+import { requireDate, requireText } from "./validation";
 
 export const listDue = query({
   args: {},
@@ -40,10 +41,10 @@ export const dismiss = mutation({
   args: { id: v.id("reminders") },
   handler: async (ctx, args) => {
     const userId = await getVerifiedUserId(ctx);
-    if (!userId) throw new Error("Not authenticated");
+    if (!userId) throw new ConvexError("Not authenticated");
     const reminder = await ctx.db.get(args.id);
     if (!reminder || reminder.userId !== userId)
-      throw new Error("Not authorized");
+      throw new ConvexError("Not authorized");
     await ctx.db.patch(args.id, { isActive: false });
   },
 });
@@ -55,25 +56,14 @@ export const create = mutation({
     message: v.string(),
   },
   handler: async (ctx, args) => {
-    const userId = await getVerifiedUserId(ctx);
-    if (!userId) throw new Error("Not authenticated");
-
     // Verify ownership
-    const bulb = await ctx.db.get(args.bulbId);
-    if (!bulb) throw new Error("Bulb not found");
-    const fixture = await ctx.db.get(bulb.fixtureId);
-    if (!fixture) throw new Error("Fixture not found");
-    const room = await ctx.db.get(fixture.roomId);
-    if (!room) throw new Error("Room not found");
-    const property = await ctx.db.get(room.propertyId);
-    if (!property || property.userId !== userId)
-      throw new Error("Not authorized");
+    const { userId } = await requireBulbOwner(ctx, args.bulbId);
 
     return await ctx.db.insert("reminders", {
       userId,
       bulbId: args.bulbId,
-      reminderDate: args.reminderDate,
-      message: args.message,
+      reminderDate: requireDate(args.reminderDate),
+      message: requireText(args.message, "Message", 500),
       isActive: true,
       createdAt: Date.now(),
     });

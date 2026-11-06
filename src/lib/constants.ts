@@ -1,4 +1,12 @@
-export const ROOM_TYPE_LABELS: Record<string, string> = {
+import {
+  type BulbStatus,
+  type ColourTemperature,
+  type FixtureLocation,
+  type RoomType,
+  SOCKET_TYPES,
+} from "./entity-types";
+
+export const ROOM_TYPE_LABELS: Record<RoomType, string> = {
   living_room: "Living Room",
   bedroom: "Bedroom",
   kitchen: "Kitchen",
@@ -15,7 +23,7 @@ export const ROOM_TYPE_LABELS: Record<string, string> = {
   other: "Other",
 };
 
-export const FIXTURE_LOCATION_LABELS: Record<string, string> = {
+export const FIXTURE_LOCATION_LABELS: Record<FixtureLocation, string> = {
   ceiling: "Ceiling",
   wall: "Wall",
   floor: "Floor",
@@ -31,27 +39,22 @@ export const FIXTURE_LOCATION_LABELS: Record<string, string> = {
   other: "Other",
 };
 
-export const SOCKET_TYPE_OPTIONS = [
-  "E26", "E12", "E17", "E39",
-  "GU10", "GU24", "MR16",
-  "G4", "G9", "T8", "T5",
-  "PAR20", "PAR30", "PAR38",
-  "other",
-] as const;
+export const SOCKET_TYPE_OPTIONS = SOCKET_TYPES;
 
-export const BULB_STATUS_LABELS: Record<string, string> = {
+export const BULB_STATUS_LABELS: Record<BulbStatus, string> = {
   working: "Working",
   flickering: "Flickering",
   dead: "Dead",
 };
 
-export const BULB_STATUS_COLORS: Record<string, string> = {
+export const BULB_STATUS_COLORS: Record<BulbStatus, string> = {
   working: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
-  flickering: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
+  flickering:
+    "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
   dead: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
 };
 
-export const COLOUR_TEMP_LABELS: Record<string, string> = {
+export const COLOUR_TEMP_LABELS: Record<ColourTemperature, string> = {
   warm: "Warm White",
   cool: "Cool White",
   daylight: "Daylight",

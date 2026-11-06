@@ -1,5 +1,7 @@
 # Lights Inventory Architecture Brief
 
+> Historical snapshot from before the static-SPA remediation. Routing, build/deployment details and version tables below are not current implementation guidance. See the root README and AGENTS.md for the maintained architecture and verification workflow.
+
 ## Table of Contents
 
 - [Overview](#overview)
@@ -35,7 +37,7 @@ Primary users include:
 The system addresses the challenge of maintaining accurate records of lighting infrastructure across distributed properties, enabling proactive maintenance and reducing downtime due to unexpected bulb failures.
 ## Problem Definitions & Business Context
 
-> **This section is the foundation of the architecture brief.** It grounds all subsequent technical decisions by establishing *why* the system exists and *what* problems it solves. Readers should understand the business motivation before diving into technical implementation details.
+> **This section is the foundation of the architecture brief.** It grounds all subsequent technical decisions by establishing _why_ the system exists and _what_ problems it solves. Readers should understand the business motivation before diving into technical implementation details.
 
 ### Problem Statement
 

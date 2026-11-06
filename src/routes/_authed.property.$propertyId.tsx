@@ -1,12 +1,19 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery, useMutation } from "convex/react";
-import { api } from "../../convex/_generated/api";
-import type { Id } from "../../convex/_generated/dataModel";
+import { useMutation, useQuery } from "convex/react";
+import type { FunctionReturnType } from "convex/server";
+import {
+  AlertTriangle,
+  ArrowLeft,
+  Lightbulb,
+  Pencil,
+  Plus,
+  Trash2,
+  Zap,
+} from "lucide-react";
 import { useState } from "react";
-import { AuthGuard } from "#/components/AuthGuard";
+import { toast } from "sonner";
+import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
-import { Input } from "#/components/ui/input";
-import { Label } from "#/components/ui/label";
 import {
   Card,
   CardContent,
@@ -14,7 +21,6 @@ import {
   CardHeader,
   CardTitle,
 } from "#/components/ui/card";
-import { Skeleton } from "#/components/ui/skeleton";
 import {
   Dialog,
   DialogContent,
@@ -23,6 +29,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "#/components/ui/dialog";
+import { Input } from "#/components/ui/input";
+import { Label } from "#/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -30,40 +38,33 @@ import {
   SelectTrigger,
   SelectValue,
 } from "#/components/ui/select";
-import { Badge } from "#/components/ui/badge";
-import {
-  Plus,
-  Lightbulb,
-  AlertTriangle,
-  Trash2,
-  Pencil,
-  ArrowLeft,
-  Zap,
-} from "lucide-react";
-import { toast } from "sonner";
+import { Skeleton } from "#/components/ui/skeleton";
+import { userMessage } from "#/lib/errors";
+import { api } from "../../convex/_generated/api";
+import type { Id } from "../../convex/_generated/dataModel";
+
+type RoomWithStats = FunctionReturnType<
+  typeof api.rooms.listByProperty
+>[number];
+
 import { ConfirmDialog } from "#/components/ConfirmDialog";
 import { ROOM_TYPE_LABELS } from "#/lib/constants";
 
-export const Route = createFileRoute("/property/$propertyId")({
-  component: PropertyDetailPage,
-  ssr: false,
+export const Route = createFileRoute("/_authed/property/$propertyId")({
+  component: PropertyDetailContent,
+  params: {
+    parse: ({ propertyId }) => ({ propertyId: propertyId as Id<"properties"> }),
+    stringify: ({ propertyId }) => ({ propertyId }),
+  },
 });
-
-function PropertyDetailPage() {
-  return (
-    <AuthGuard>
-      <PropertyDetailContent />
-    </AuthGuard>
-  );
-}
 
 function PropertyDetailContent() {
   const { propertyId } = Route.useParams();
   const property = useQuery(api.properties.get, {
-    id: propertyId as Id<"properties">,
+    id: propertyId,
   });
   const rooms = useQuery(api.rooms.listByProperty, {
-    propertyId: propertyId as Id<"properties">,
+    propertyId: propertyId,
   });
   const [createOpen, setCreateOpen] = useState(false);
 
@@ -81,7 +82,7 @@ function PropertyDetailContent() {
           </div>
         </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 3 }).map((_, i) => (
+          {["first", "second", "third"].map((i) => (
             <Card key={i}>
               <CardHeader className="pb-3">
                 <Skeleton className="h-5 w-36 mb-1" />
@@ -89,7 +90,7 @@ function PropertyDetailContent() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-3 gap-2 text-center text-sm mb-4">
-                  {Array.from({ length: 3 }).map((_, j) => (
+                  {["rooms", "fixtures", "bulbs"].map((j) => (
                     <div key={j} className="rounded-lg bg-muted p-2">
                       <Skeleton className="mx-auto h-4 w-4 mb-1" />
                       <Skeleton className="mx-auto h-5 w-6 mb-1" />
@@ -135,7 +136,7 @@ function PropertyDetailContent() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {rooms.map((room: any) => (
+        {rooms.map((room: RoomWithStats) => (
           <RoomCard key={room._id} room={room} />
         ))}
         <Dialog open={createOpen} onOpenChange={setCreateOpen}>
@@ -156,7 +157,7 @@ function PropertyDetailContent() {
               </DialogDescription>
             </DialogHeader>
             <CreateRoomForm
-              propertyId={propertyId as Id<"properties">}
+              propertyId={propertyId}
               onSuccess={() => setCreateOpen(false)}
             />
           </DialogContent>
@@ -166,11 +167,7 @@ function PropertyDetailContent() {
   );
 }
 
-function RoomCard({
-  room,
-}: {
-  room: any;
-}) {
+function RoomCard({ room }: { room: RoomWithStats }) {
   const removeRoom = useMutation(api.rooms.remove);
   const [editOpen, setEditOpen] = useState(false);
 
@@ -276,11 +273,15 @@ function CreateRoomForm({
     if (!roomType) return;
     setLoading(true);
     try {
-      await create({ propertyId, name, roomType: roomType as "living_room" | "bedroom" | "kitchen" | "bathroom" | "dining_room" | "office" | "hallway" | "garage" | "basement" | "attic" | "laundry" | "closet" | "outdoor" | "other" });
+      await create({
+        propertyId,
+        name,
+        roomType: roomType as RoomWithStats["roomType"],
+      });
       toast.success("Room created");
       onSuccess();
-    } catch {
-      toast.error("Failed to create room");
+    } catch (err) {
+      toast.error(userMessage(err, "Failed to create room"));
     } finally {
       setLoading(false);
     }
@@ -300,7 +301,10 @@ function CreateRoomForm({
       </div>
       <div className="space-y-2">
         <Label htmlFor="room-type">Room Type</Label>
-        <Select value={roomType} onValueChange={setRoomType}>
+        <Select
+          value={roomType}
+          onValueChange={(value) => setRoomType(value as typeof roomType)}
+        >
           <SelectTrigger>
             <SelectValue placeholder="Select room type" />
           </SelectTrigger>
@@ -313,11 +317,7 @@ function CreateRoomForm({
           </SelectContent>
         </Select>
       </div>
-      <Button
-        type="submit"
-        className="w-full"
-        disabled={loading || !roomType}
-      >
+      <Button type="submit" className="w-full" disabled={loading || !roomType}>
         {loading ? "Creating..." : "Create Room"}
       </Button>
     </form>
@@ -328,7 +328,7 @@ function EditRoomForm({
   room,
   onSuccess,
 }: {
-  room: any;
+  room: RoomWithStats;
   onSuccess: () => void;
 }) {
   const update = useMutation(api.rooms.update);
@@ -343,8 +343,8 @@ function EditRoomForm({
       await update({ id: room._id, name, roomType });
       toast.success("Room updated");
       onSuccess();
-    } catch {
-      toast.error("Failed to update room");
+    } catch (err) {
+      toast.error(userMessage(err, "Failed to update room"));
     } finally {
       setLoading(false);
     }
@@ -354,11 +354,18 @@ function EditRoomForm({
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
         <Label>Room Name</Label>
-        <Input value={name} onChange={(e) => setName(e.target.value)} required />
+        <Input
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          required
+        />
       </div>
       <div className="space-y-2">
         <Label>Room Type</Label>
-        <Select value={roomType} onValueChange={setRoomType}>
+        <Select
+          value={roomType}
+          onValueChange={(value) => setRoomType(value as typeof roomType)}
+        >
           <SelectTrigger>
             <SelectValue />
           </SelectTrigger>

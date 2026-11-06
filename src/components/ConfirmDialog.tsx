@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { toast } from "sonner";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -10,6 +11,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "#/components/ui/alert-dialog";
+import { userMessage } from "#/lib/errors";
 
 interface ConfirmDialogProps {
   trigger: React.ReactNode;
@@ -37,9 +39,11 @@ export function ConfirmDialog({
     setLoading(true);
     try {
       await onConfirm();
+      setOpen(false);
+    } catch (err) {
+      toast.error(userMessage(err, "Unable to complete this action"));
     } finally {
       setLoading(false);
-      setOpen(false);
     }
   };
 

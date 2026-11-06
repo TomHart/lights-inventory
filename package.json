@@ -1,6 +1,7 @@
 {
   "name": "lights-inventory",
   "private": true,
+  "packageManager": "pnpm@11.1.0",
   "type": "module",
   "imports": {
     "#/*": "./src/*"
@@ -11,42 +12,33 @@
     "dev": "concurrently -k -n app,convex -c blue,green \"npm:dev:app\" \"npm:dev:convex\"",
     "build": "vite build",
     "preview": "vite preview",
-    "lint": "biome lint .",
-    "lint:fix": "biome lint --write .",
+    "lint": "biome check . --error-on-warnings",
+    "lint:fix": "biome check --write . --error-on-warnings",
+    "format": "biome format --write .",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
     "typecheck": "tsc --noEmit",
-    "docs:build": "typedoc",
-    "safety-check": "./scripts/safety-check.sh",
     "prepare": "husky"
   },
   "lint-staged": {
-    "*.{ts,tsx}": [
-      "biome lint --write",
-      "biome check --write"
-    ],
-    "*.{json,md}": [
-      "biome lint --write"
+    "*.{ts,tsx,json,md}": [
+      "biome check --write --no-errors-on-unmatched"
     ]
   },
   "dependencies": {
     "@auth/core": "^0.41.3",
     "@convex-dev/auth": "^0.0.96",
-    "@convex-dev/react-query": "0.1.0",
     "@tailwindcss/vite": "^4.3.4",
     "@tanstack/react-devtools": "0.10.14",
     "@tanstack/react-router": "1.170.46",
     "@tanstack/react-router-devtools": "1.167.2",
-    "@tanstack/react-router-ssr-query": "1.167.3",
-    "@tanstack/react-start": "1.169.4",
     "@tanstack/router-plugin": "^1.168.48",
     "@vercel/analytics": "^2.0.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "convex": "^1.49.0",
     "lucide-react": "^1.67.0",
-    "next-themes": "^0.4.6",
     "radix-ui": "^1.8.1",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
@@ -58,30 +50,18 @@
   "devDependencies": {
     "@biomejs/biome": "^2.6.4",
     "@playwright/test": "^1.64.1",
-    "@tailwindcss/typography": "^0.5.20",
     "@tanstack/devtools-vite": "0.8.6",
-    "@testing-library/dom": "^10.4.2",
-    "@testing-library/react": "^16.3.3",
     "@types/node": "^26.6.6",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.2.1",
     "@vitest/coverage-v8": "^5.1.0",
     "concurrently": "^10.0.6",
+    "convex-test": "0.0.66",
     "husky": "^9.1.7",
-    "jsdom": "^30.1.3",
     "lint-staged": "^17.6.0",
-    "typedoc": "^0.28.20",
     "typescript": "^7.0.2",
     "vite": "^8.3.5",
-    "vite-tsconfig-paths": "^6.1.1",
-    "vitest": "^5.1.0",
-    "wait-on": "^9.5.1"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "esbuild",
-      "lightningcss"
-    ]
+    "vitest": "^5.1.0"
   }
 }

@@ -1,7 +1,0 @@
-{
-  "entryPoints": ["convex"],
-  "out": "docs/api",
-  "exclude": ["convex/_generated"],
-  "excludePrivate": true,
-  "sort": ["source-order"]
-}

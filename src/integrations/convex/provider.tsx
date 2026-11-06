@@ -1,13 +1,17 @@
 import { ConvexAuthProvider } from "@convex-dev/auth/react";
 import { ConvexReactClient } from "convex/react";
 
-const CONVEX_URL = import.meta.env.VITE_CONVEX_URL as string;
-if (!CONVEX_URL) {
-  // In production, replace with a proper logging service
-  console.error("Missing VITE_CONVEX_URL environment variable");
-}
+let convex: ConvexReactClient | undefined;
 
-const convex = new ConvexReactClient(CONVEX_URL || "https://placeholder.convex.cloud");
+function getClient() {
+  const url = import.meta.env.VITE_CONVEX_URL;
+  if (!url)
+    throw new Error(
+      "Missing VITE_CONVEX_URL. Set it in .env.local or the Vercel environment settings and rebuild.",
+    );
+  convex ??= new ConvexReactClient(url);
+  return convex;
+}
 
 export default function AppConvexProvider({
   children,
@@ -15,10 +19,6 @@ export default function AppConvexProvider({
   children: React.ReactNode;
 }) {
   return (
-    <ConvexAuthProvider client={convex}>
-      {children}
-    </ConvexAuthProvider>
+    <ConvexAuthProvider client={getClient()}>{children}</ConvexAuthProvider>
   );
 }
-
-export { convex };

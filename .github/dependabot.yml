@@ -2,8 +2,8 @@ version: 2
 updates:
   - package-ecosystem: "npm"
     directory: "/"
-    # No schedule - only run manually for security updates
-    # Regular dependency updates are done manually
+    schedule:
+      interval: weekly
     open-pull-requests-limit: 5
     labels:
       - "dependencies"
@@ -13,3 +13,7 @@ updates:
       prefix-development: "chore"
     assignees:
       - "TomHart"
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

@@ -9,24 +9,19 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as InventoryRouteImport } from './routes/inventory'
+import { Route as AuthedRouteImport } from './routes/_authed'
 import { Route as LoginRouteImport } from './routes/login'
-import { Route as PropertiesRouteImport } from './routes/properties'
-import { Route as SearchRouteImport } from './routes/search'
 import { Route as VerifyRouteImport } from './routes/verify'
-import { Route as FixtureFixtureIdRouteImport } from './routes/fixture.$fixtureId'
-import { Route as PropertyPropertyIdRouteImport } from './routes/property.$propertyId'
-import { Route as RoomRoomIdRouteImport } from './routes/room.$roomId'
+import { Route as AuthedIndexRouteImport } from './routes/_authed.index'
+import { Route as AuthedInventoryRouteImport } from './routes/_authed.inventory'
+import { Route as AuthedPropertiesRouteImport } from './routes/_authed.properties'
+import { Route as AuthedSearchRouteImport } from './routes/_authed.search'
+import { Route as AuthedFixtureFixtureIdRouteImport } from './routes/_authed.fixture.$fixtureId'
+import { Route as AuthedPropertyPropertyIdRouteImport } from './routes/_authed.property.$propertyId'
+import { Route as AuthedRoomRoomIdRouteImport } from './routes/_authed.room.$roomId'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const InventoryRoute = InventoryRouteImport.update({
-  id: '/inventory',
-  path: '/inventory',
+const AuthedRoute = AuthedRouteImport.update({
+  id: '/_authed',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -34,133 +29,133 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PropertiesRoute = PropertiesRouteImport.update({
-  id: '/properties',
-  path: '/properties',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SearchRoute = SearchRouteImport.update({
-  id: '/search',
-  path: '/search',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const VerifyRoute = VerifyRouteImport.update({
   id: '/verify',
   path: '/verify',
   getParentRoute: () => rootRouteImport,
 } as any)
-const FixtureFixtureIdRoute = FixtureFixtureIdRouteImport.update({
+const AuthedIndexRoute = AuthedIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedInventoryRoute = AuthedInventoryRouteImport.update({
+  id: '/inventory',
+  path: '/inventory',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedPropertiesRoute = AuthedPropertiesRouteImport.update({
+  id: '/properties',
+  path: '/properties',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedSearchRoute = AuthedSearchRouteImport.update({
+  id: '/search',
+  path: '/search',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedFixtureFixtureIdRoute = AuthedFixtureFixtureIdRouteImport.update({
   id: '/fixture/$fixtureId',
   path: '/fixture/$fixtureId',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthedRoute,
 } as any)
-const PropertyPropertyIdRoute = PropertyPropertyIdRouteImport.update({
-  id: '/property/$propertyId',
-  path: '/property/$propertyId',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RoomRoomIdRoute = RoomRoomIdRouteImport.update({
+const AuthedPropertyPropertyIdRoute =
+  AuthedPropertyPropertyIdRouteImport.update({
+    id: '/property/$propertyId',
+    path: '/property/$propertyId',
+    getParentRoute: () => AuthedRoute,
+  } as any)
+const AuthedRoomRoomIdRoute = AuthedRoomRoomIdRouteImport.update({
   id: '/room/$roomId',
   path: '/room/$roomId',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthedRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/inventory': typeof InventoryRoute
+  '/': typeof AuthedIndexRoute
   '/login': typeof LoginRoute
-  '/properties': typeof PropertiesRoute
-  '/search': typeof SearchRoute
   '/verify': typeof VerifyRoute
-  '/fixture/$fixtureId': typeof FixtureFixtureIdRoute
-  '/property/$propertyId': typeof PropertyPropertyIdRoute
-  '/room/$roomId': typeof RoomRoomIdRoute
+  '/inventory': typeof AuthedInventoryRoute
+  '/properties': typeof AuthedPropertiesRoute
+  '/search': typeof AuthedSearchRoute
+  '/fixture/$fixtureId': typeof AuthedFixtureFixtureIdRoute
+  '/property/$propertyId': typeof AuthedPropertyPropertyIdRoute
+  '/room/$roomId': typeof AuthedRoomRoomIdRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/inventory': typeof InventoryRoute
   '/login': typeof LoginRoute
-  '/properties': typeof PropertiesRoute
-  '/search': typeof SearchRoute
   '/verify': typeof VerifyRoute
-  '/fixture/$fixtureId': typeof FixtureFixtureIdRoute
-  '/property/$propertyId': typeof PropertyPropertyIdRoute
-  '/room/$roomId': typeof RoomRoomIdRoute
+  '/inventory': typeof AuthedInventoryRoute
+  '/properties': typeof AuthedPropertiesRoute
+  '/search': typeof AuthedSearchRoute
+  '/': typeof AuthedIndexRoute
+  '/fixture/$fixtureId': typeof AuthedFixtureFixtureIdRoute
+  '/property/$propertyId': typeof AuthedPropertyPropertyIdRoute
+  '/room/$roomId': typeof AuthedRoomRoomIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/inventory': typeof InventoryRoute
+  '/_authed': typeof AuthedRouteWithChildren
   '/login': typeof LoginRoute
-  '/properties': typeof PropertiesRoute
-  '/search': typeof SearchRoute
   '/verify': typeof VerifyRoute
-  '/fixture/$fixtureId': typeof FixtureFixtureIdRoute
-  '/property/$propertyId': typeof PropertyPropertyIdRoute
-  '/room/$roomId': typeof RoomRoomIdRoute
+  '/_authed/inventory': typeof AuthedInventoryRoute
+  '/_authed/properties': typeof AuthedPropertiesRoute
+  '/_authed/search': typeof AuthedSearchRoute
+  '/_authed/': typeof AuthedIndexRoute
+  '/_authed/fixture/$fixtureId': typeof AuthedFixtureFixtureIdRoute
+  '/_authed/property/$propertyId': typeof AuthedPropertyPropertyIdRoute
+  '/_authed/room/$roomId': typeof AuthedRoomRoomIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/inventory'
     | '/login'
+    | '/verify'
+    | '/inventory'
     | '/properties'
     | '/search'
-    | '/verify'
     | '/fixture/$fixtureId'
     | '/property/$propertyId'
     | '/room/$roomId'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/'
-    | '/inventory'
     | '/login'
+    | '/verify'
+    | '/inventory'
     | '/properties'
     | '/search'
-    | '/verify'
+    | '/'
     | '/fixture/$fixtureId'
     | '/property/$propertyId'
     | '/room/$roomId'
   id:
     | '__root__'
-    | '/'
-    | '/inventory'
+    | '/_authed'
     | '/login'
-    | '/properties'
-    | '/search'
     | '/verify'
-    | '/fixture/$fixtureId'
-    | '/property/$propertyId'
-    | '/room/$roomId'
+    | '/_authed/inventory'
+    | '/_authed/properties'
+    | '/_authed/search'
+    | '/_authed/'
+    | '/_authed/fixture/$fixtureId'
+    | '/_authed/property/$propertyId'
+    | '/_authed/room/$roomId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  InventoryRoute: typeof InventoryRoute
+  AuthedRoute: typeof AuthedRouteWithChildren
   LoginRoute: typeof LoginRoute
-  PropertiesRoute: typeof PropertiesRoute
-  SearchRoute: typeof SearchRoute
   VerifyRoute: typeof VerifyRoute
-  FixtureFixtureIdRoute: typeof FixtureFixtureIdRoute
-  PropertyPropertyIdRoute: typeof PropertyPropertyIdRoute
-  RoomRoomIdRoute: typeof RoomRoomIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
+    '/_authed': {
+      id: '/_authed'
+      path: ''
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/inventory': {
-      id: '/inventory'
-      path: '/inventory'
-      fullPath: '/inventory'
-      preLoaderRoute: typeof InventoryRouteImport
+      preLoaderRoute: typeof AuthedRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -170,20 +165,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/properties': {
-      id: '/properties'
-      path: '/properties'
-      fullPath: '/properties'
-      preLoaderRoute: typeof PropertiesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/search': {
-      id: '/search'
-      path: '/search'
-      fullPath: '/search'
-      preLoaderRoute: typeof SearchRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/verify': {
       id: '/verify'
       path: '/verify'
@@ -191,50 +172,86 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VerifyRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/fixture/$fixtureId': {
-      id: '/fixture/$fixtureId'
+    '/_authed/': {
+      id: '/_authed/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof AuthedIndexRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/inventory': {
+      id: '/_authed/inventory'
+      path: '/inventory'
+      fullPath: '/inventory'
+      preLoaderRoute: typeof AuthedInventoryRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/properties': {
+      id: '/_authed/properties'
+      path: '/properties'
+      fullPath: '/properties'
+      preLoaderRoute: typeof AuthedPropertiesRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/search': {
+      id: '/_authed/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof AuthedSearchRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/fixture/$fixtureId': {
+      id: '/_authed/fixture/$fixtureId'
       path: '/fixture/$fixtureId'
       fullPath: '/fixture/$fixtureId'
-      preLoaderRoute: typeof FixtureFixtureIdRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthedFixtureFixtureIdRouteImport
+      parentRoute: typeof AuthedRoute
     }
-    '/property/$propertyId': {
-      id: '/property/$propertyId'
+    '/_authed/property/$propertyId': {
+      id: '/_authed/property/$propertyId'
       path: '/property/$propertyId'
       fullPath: '/property/$propertyId'
-      preLoaderRoute: typeof PropertyPropertyIdRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthedPropertyPropertyIdRouteImport
+      parentRoute: typeof AuthedRoute
     }
-    '/room/$roomId': {
-      id: '/room/$roomId'
+    '/_authed/room/$roomId': {
+      id: '/_authed/room/$roomId'
       path: '/room/$roomId'
       fullPath: '/room/$roomId'
-      preLoaderRoute: typeof RoomRoomIdRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthedRoomRoomIdRouteImport
+      parentRoute: typeof AuthedRoute
     }
   }
 }
 
+interface AuthedRouteChildren {
+  AuthedInventoryRoute: typeof AuthedInventoryRoute
+  AuthedPropertiesRoute: typeof AuthedPropertiesRoute
+  AuthedSearchRoute: typeof AuthedSearchRoute
+  AuthedIndexRoute: typeof AuthedIndexRoute
+  AuthedFixtureFixtureIdRoute: typeof AuthedFixtureFixtureIdRoute
+  AuthedPropertyPropertyIdRoute: typeof AuthedPropertyPropertyIdRoute
+  AuthedRoomRoomIdRoute: typeof AuthedRoomRoomIdRoute
+}
+
+const AuthedRouteChildren: AuthedRouteChildren = {
+  AuthedInventoryRoute: AuthedInventoryRoute,
+  AuthedPropertiesRoute: AuthedPropertiesRoute,
+  AuthedSearchRoute: AuthedSearchRoute,
+  AuthedIndexRoute: AuthedIndexRoute,
+  AuthedFixtureFixtureIdRoute: AuthedFixtureFixtureIdRoute,
+  AuthedPropertyPropertyIdRoute: AuthedPropertyPropertyIdRoute,
+  AuthedRoomRoomIdRoute: AuthedRoomRoomIdRoute,
+}
+
+const AuthedRouteWithChildren =
+  AuthedRoute._addFileChildren(AuthedRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  InventoryRoute: InventoryRoute,
+  AuthedRoute: AuthedRouteWithChildren,
   LoginRoute: LoginRoute,
-  PropertiesRoute: PropertiesRoute,
-  SearchRoute: SearchRoute,
   VerifyRoute: VerifyRoute,
-  FixtureFixtureIdRoute: FixtureFixtureIdRoute,
-  PropertyPropertyIdRoute: PropertyPropertyIdRoute,
-  RoomRoomIdRoute: RoomRoomIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}
