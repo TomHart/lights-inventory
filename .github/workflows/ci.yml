@@ -23,7 +23,7 @@ jobs:
       VITE_CONVEX_URL: ${{ vars.VITE_CONVEX_URL }}
       VITE_RECAPTCHA_SITE_KEY: ${{ vars.VITE_RECAPTCHA_SITE_KEY }}
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       - uses: pnpm/action-setup@b307475762933b98ed359c036b0e51f26b63b74b
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
         with:
