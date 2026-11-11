@@ -1641,6 +1641,7 @@ to match reality and cross-link it from the README and from
 [`architecture.md`](./architecture.md).
 
 **`AGENTS.md`:**
+
 - Delete the "Tech Stack" version table (it will always drift); replace with
   "run `pnpm list --depth 0`".
 - Update the workflow inventory to the four workflows from T-3.1.
