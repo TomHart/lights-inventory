@@ -13,6 +13,7 @@ where I am expressing a preference say so.
 ---
 
 <a id="cr-001"></a>
+
 ## CR-001 — Production returns HTTP 404; the build output no longer matches the Vercel deployment
 
 |                |                                                                              |
@@ -148,6 +149,7 @@ requires rewriting `src/routes/__root.tsx`'s `shellComponent` into a conventiona
 ---
 
 <a id="cr-002"></a>
+
 ## CR-002 — Any anonymous caller can lock every user out of login for 10 minutes
 
 |                |                         |
@@ -239,6 +241,7 @@ actions, so IP-based keying is not available without an HTTP action.
 ---
 
 <a id="cr-003"></a>
+
 ## CR-003 — Automatic, unsupervised `vercel rollback` on any CI failure
 
 |                |                                                     |
@@ -371,6 +374,7 @@ production smoke check failing, never on CI status.
 ---
 
 <a id="cr-004"></a>
+
 ## CR-004 — No `ConvexError` usage, so server error messages are redacted in production
 
 |                |                                                                      |
@@ -519,6 +523,7 @@ are safe to expose; raw database or upstream-API errors are not.
 ---
 
 <a id="cr-005"></a>
+
 ## CR-005 — reCAPTCHA verification is decoupled from sign-in and is trivially bypassable
 
 |                |                      |
@@ -632,6 +637,7 @@ in principle. In practice this app is not currently receiving that signal either
 ---
 
 <a id="cr-006"></a>
+
 ## CR-006 — The auth e-mail rate limiter is an in-memory `Map` that does not work and leaks
 
 |                |                                                                                  |
@@ -726,6 +732,7 @@ but leaves the gap open until CR-005 is addressed.
 ---
 
 <a id="cr-007"></a>
+
 ## CR-007 — Failure notification never fires and the health check is effectively disabled
 
 |                |                             |
@@ -842,6 +849,7 @@ already here.
 ---
 
 <a id="cr-008"></a>
+
 ## CR-008 — The test suite and its coverage thresholds provide false assurance
 
 |                |                                      |
@@ -967,6 +975,7 @@ mutation-level tests are actually written.
 ---
 
 <a id="cr-009"></a>
+
 ## CR-009 — Two lockfiles; the npm one is stale and names a different project
 
 |                |                               |
@@ -1069,6 +1078,7 @@ Anyone used to running `npm install` in this repo will get an error. That is the
 ---
 
 <a id="cr-010"></a>
+
 ## CR-010 — Thirteen workflows with three duplicate lint/test/build pipelines
 
 |                |                                                |
@@ -1177,6 +1187,7 @@ configured in branch protection must be renamed to match the new job names, or m
 ---
 
 <a id="cr-011"></a>
+
 ## CR-011 — Every route sets `ssr: false`, so the SSR/Nitro stack is unused complexity
 
 |                |                               |
@@ -1264,6 +1275,7 @@ genuinely structural recommendation in the review and should be a deliberate hum
 ---
 
 <a id="cr-012"></a>
+
 ## CR-012 — The ownership-check ladder is duplicated about twenty times
 
 |                |                 |
@@ -1386,6 +1398,7 @@ name already says what they do and giving them obvious names.
 ---
 
 <a id="cr-013"></a>
+
 ## CR-013 — `<AuthGuard>` is repeated in seven routes instead of using a layout route
 
 |                |                 |
@@ -1494,6 +1507,7 @@ entirely mechanical diff. Do it in its own commit.
 ---
 
 <a id="cr-014"></a>
+
 ## CR-014 — Git hooks run the full build on every commit and use a deprecated husky shim
 
 |                |                      |
@@ -1598,6 +1612,7 @@ branch protection and a single maintainer that is a good trade; the feedback arr
 ---
 
 <a id="cr-015"></a>
+
 ## CR-015 — Twenty-six `any` annotations where generated Convex types exist
 
 |                |                                                |
@@ -1713,6 +1728,7 @@ a derived type or a small hand-written interface. `FunctionReturnType` handles m
 ---
 
 <a id="cr-016"></a>
+
 ## CR-016 — Server-side input bounds are applied inconsistently
 
 |                |                 |
@@ -1831,6 +1847,7 @@ query to check is cheap if desired.
 ---
 
 <a id="cr-017"></a>
+
 ## CR-017 — Dead code: an unused component, an unused module, a no-op migration, ~200 lines of CSS
 
 |                |                                           |
@@ -1909,6 +1926,7 @@ check above.
 ---
 
 <a id="cr-018"></a>
+
 ## CR-018 — Seven unused or redundant dependencies
 
 |                |                                            |
@@ -1987,6 +2005,7 @@ rather than assuming.
 ---
 
 <a id="cr-019"></a>
+
 ## CR-019 — Playwright: hand-rolled server orchestration, three browsers, a stale PID path
 
 |                |                              |
@@ -2135,6 +2154,7 @@ seed mutation guarded to the dev deployment.
 ---
 
 <a id="cr-020"></a>
+
 ## CR-020 — The `rateLimits` table grows without bound and has no cleanup
 
 |                |                 |
@@ -2264,6 +2284,7 @@ The component alternative adds a dependency but removes more than it adds.
 ---
 
 <a id="cr-021"></a>
+
 ## CR-021 — The README is unmodified scaffolding and AGENTS.md states wrong versions
 
 |                |                 |
@@ -2371,6 +2392,7 @@ None. This is pure correction.
 ---
 
 <a id="cr-022"></a>
+
 ## CR-022 — The Biome formatter is never enforced, so indentation is inconsistent
 
 |                |                 |
@@ -2476,6 +2498,7 @@ a `.git-blame-ignore-revs` file, which GitHub honours.
 ---
 
 <a id="cr-023"></a>
+
 ## CR-023 — A missing `VITE_CONVEX_URL` silently falls back to a placeholder
 
 |                |                 |
@@ -2565,6 +2588,7 @@ point, but check Vercel preview environments have it set before shipping this.
 ---
 
 <a id="cr-024"></a>
+
 ## CR-024 — `.vercel/project.json` is committed and the `.gitignore` negation is defeated
 
 |                |                 |
@@ -2695,6 +2719,7 @@ clones will need `vercel link` to re-establish the link. That is the documented 
 ---
 
 <a id="cr-025"></a>
+
 ## CR-025 — Workflow hygiene: missing `permissions:`, mixed action pinning, pnpm version drift
 
 |                |                        |
@@ -2803,6 +2828,7 @@ contributors that is a reasonable risk; if the maintainer prefers SHA pinning, e
 ---
 
 <a id="cr-026"></a>
+
 ## CR-026 — The Security Audit workflow always passes; Dependabot has no schedule
 
 |                |                 |
@@ -2923,6 +2949,7 @@ scheduling keeps that rare; if it becomes disruptive, move it to schedule-only.
 ---
 
 <a id="cr-027"></a>
+
 ## CR-027 — Entity enumerations are defined four times in three places
 
 |                |                 |
@@ -3055,6 +3082,7 @@ Convex workflow.
 ---
 
 <a id="cr-028"></a>
+
 ## CR-028 — `build-docs.yml` masks its own failure and produces low-value output
 
 |                |              |
@@ -3130,6 +3158,7 @@ None identified — there is no consumer of this output.
 ---
 
 <a id="cr-029"></a>
+
 ## CR-029 — Two parallel design-token systems in `src/styles.css`
 
 |                |              |
@@ -3232,6 +3261,7 @@ There are 9 routes, so this is a 5-minute check.
 ---
 
 <a id="cr-030"></a>
+
 ## CR-030 — `dashboardStats` and `searchAll` perform unbounded nested scans
 
 |                |                                                                          |
@@ -3330,6 +3360,7 @@ a defensible decision.
 ---
 
 <a id="cr-031"></a>
+
 ## CR-031 — `maintenance.listByFixture` has a redundant post-filter and broken indentation
 
 |                |              |
@@ -3413,6 +3444,7 @@ None — the filter is provably a no-op given the ownership check above it.
 ---
 
 <a id="cr-032"></a>
+
 ## CR-032 — Stale build artefacts in the working tree and a duplicate `.cursorrules`
 
 |                |              |
@@ -3485,6 +3517,7 @@ If Cursor is in active use, verify it reads `AGENTS.md` before deleting `.cursor
 ---
 
 <a id="cr-033"></a>
+
 ## CR-033 — Route params are cast with `as Id<"…">` instead of being typed
 
 |                |              |
@@ -3577,6 +3610,7 @@ says otherwise. The cast is just in a better place.
 ---
 
 <a id="cr-034"></a>
+
 ## CR-034 — Blanket `Cache-Control` in `vercel.json`; CSP omits `*.convex.site`
 
 |                |                                                                                |
@@ -3679,6 +3713,7 @@ not separately.
 ---
 
 <a id="cr-035"></a>
+
 ## CR-035 — Lighthouse CI audits the dev server, so its scores are meaningless
 
 |                |              |
@@ -3757,6 +3792,7 @@ workflow outright is still the right call — the current data is not usable.
 ---
 
 <a id="cr-036"></a>
+
 ## CR-036 — `pnpm-workspace.yaml` contains a key that pnpm does not recognise
 
 |                |                                   |
@@ -3841,6 +3877,7 @@ Needs a clean-install verification, which takes a minute.
 ---
 
 <a id="cr-037"></a>
+
 ## CR-037 — Obsolete planning documents under `docs/`
 
 |                |               |
